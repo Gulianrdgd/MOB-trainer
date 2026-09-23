@@ -32,6 +32,7 @@
 	--ideal: #1f7a4a;
 	--chart-own: #d44a0b;
 	--chart-ideal: #1f7a4a;
+	--gust: rgba(22, 56, 74, 0.22);
 	color-scheme: light;
 }
 
@@ -55,6 +56,7 @@
 		--ideal: #5fd08f;
 		--chart-own: #e0622c;
 		--chart-ideal: #38ad6b;
+		--gust: rgba(0, 0, 0, 0.42);
 		color-scheme: dark;
 	}
 }
@@ -78,6 +80,7 @@
 	--ideal: #5fd08f;
 	--chart-own: #e0622c;
 	--chart-ideal: #38ad6b;
+	--gust: rgba(0, 0, 0, 0.42);
 	color-scheme: dark;
 }
 

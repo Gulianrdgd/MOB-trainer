@@ -43,6 +43,10 @@
 		{ value: 'mobje', label: 'MOB-je (via voor de wind)' },
 		{ value: 'halvewind', label: 'Halve wind' }
 	];
+	const windModes: Option<Settings['variableWind']>[] = [
+		{ value: 'off', label: 'Constant' },
+		{ value: 'on', label: 'Vlagen en schiften' }
+	];
 	const hintOptions: Option<Settings['hints']>[] = [
 		{ value: 'off', label: 'Uit' },
 		{ value: 'on', label: 'Hints tonen' }
@@ -91,6 +95,12 @@
 			options={strengths}
 			value={v.windStrength}
 			onchange={set('windStrength')}
+		/>
+		<Segmented
+			label="Windverloop"
+			options={windModes}
+			value={v.variableWind}
+			onchange={set('variableWind')}
 		/>
 		<Segmented
 			label="Koers op het moment van het alarm"

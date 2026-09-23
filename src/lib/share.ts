@@ -10,18 +10,22 @@ export interface SharedScenario {
 	startCourse: number;
 	method: Method;
 	seed: number;
+	/** Vlagen en windschiftingen; dezelfde seed geeft dezelfde vlagen. */
+	variableWind?: boolean;
 }
 
 const METHODS: readonly Method[] = ['mobje', 'halvewind'];
 
 export function toSearchParams(s: SharedScenario): URLSearchParams {
-	return new URLSearchParams({
+	const p = new URLSearchParams({
 		wind: String(s.windDir),
 		kracht: s.windStrength,
 		koers: String(s.startCourse),
 		methode: s.method,
 		seed: String(s.seed)
 	});
+	if (s.variableWind) p.set('vlagen', '1');
+	return p;
 }
 
 /** Leest een gedeelde situatie uit de URL. Null als er iets ontbreekt of ongeldig is. */
@@ -39,5 +43,12 @@ export function fromSearchParams(p: URLSearchParams): SharedScenario | null {
 	if (!(startCourse >= 30 && startCourse <= 180)) return null;
 	if (!(Number.isInteger(seed) && seed < 2 ** 32)) return null;
 	if (!(windStrength in STRENGTH) || !METHODS.includes(method)) return null;
-	return { windDir, windStrength, startCourse, method, seed };
+	return {
+		windDir,
+		windStrength,
+		startCourse,
+		method,
+		seed,
+		variableWind: p.get('vlagen') === '1'
+	};
 }

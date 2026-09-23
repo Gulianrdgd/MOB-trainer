@@ -11,7 +11,17 @@ import {
 } from './constants';
 import { angDiff, clamp, norm360 } from './geometry';
 import { idealPath } from './idealPath';
-import type { Boat, Input, Scenario, SimConfig, SimEvent, SimState, TrackMark } from './types';
+import { createWindField, updateWindField, windAt } from './wind';
+import type {
+	Boat,
+	Input,
+	Scenario,
+	SimConfig,
+	SimEvent,
+	SimState,
+	TrackMark,
+	Wind
+} from './types';
 
 /** Snelheidsfractie bij windhoek th, lineair geïnterpoleerd uit de polar. */
 export function polar(th: number): number {
@@ -68,6 +78,9 @@ export function createSim(scn: Scenario, kn: number, config: SimConfig): SimStat
 	return {
 		config,
 		wind: { dir: scn.dir, kn },
+		windField: config.variableWind
+			? createWindField(scn.windSeed ?? 0, { dir: scn.dir, kn }, { x: 0, y: 0 })
+			: null,
 		boat,
 		mob: null,
 		buoy: null,
@@ -135,17 +148,24 @@ function mark(s: SimState, type: TrackMark['type']) {
 	s.marks.push({ t: s.t, x: s.boat.x, y: s.boat.y, type });
 }
 
+/** Wind zoals de boot hem nu voelt: de basiswind, of met vlagen en schiftingen. */
+export const localWind = (s: SimState): Wind =>
+	s.windField ? windAt(s.windField, s.wind, s.boat, s.t) : s.wind;
+
 /** Eén tijdstap. Muteert alleen s en geeft terug wat er gebeurde. */
 export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	const events: SimEvent[] = [];
 	if (s.finished) return events;
 	const { boat, wind, run } = s;
 	s.t += dt;
+	if (s.windField) updateWindField(s.windField, wind, boat, dt);
+	// w: wind op de boot; zonder variabele wind precies s.wind
+	const w = localWind(s);
 
 	// roer
 	const want = (input.right ? 1 : 0) - (input.left ? 1 : 0);
 	boat.rudder += clamp(want - boat.rudder, -3.2 * dt, 3.2 * dt);
-	const d = angDiff(wind.dir, boat.h);
+	const d = angDiff(w.dir, boat.h);
 	const th = Math.abs(d);
 	const side = d >= 0 ? 1 : -1;
 
@@ -163,7 +183,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	boat.disp = sp.disp;
 
 	// snelheid
-	const tgt = polar(th) * sp.p * wind.kn * SPEED_FACTOR * KN;
+	const tgt = polar(th) * sp.p * w.kn * SPEED_FACTOR * KN;
 	const k = tgt > boat.v ? 0.35 : 0.3;
 	boat.v += (tgt - boat.v) * Math.min(1, k * dt);
 	boat.v -= boat.v * Math.abs(boat.rudder) * 0.12 * dt;
@@ -175,7 +195,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	if (th < 35 && boat.v < 0.6) boat.h = norm360(boat.h - side * 5 * (1 - boat.v / 0.6) * dt);
 
 	// overstag of gijp
-	const d2 = angDiff(wind.dir, boat.h);
+	const d2 = angDiff(w.dir, boat.h);
 	const side2 = d2 >= 0 ? 1 : -1;
 	if (side2 !== s.prevSide) {
 		if (s.prevTh < 90) {
@@ -184,7 +204,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 			events.push({ type: 'tack' });
 		} else {
 			run.gybes++;
-			if (!s.config.autoTrim && boat.boom > 55 && wind.kn >= 12) {
+			if (!s.config.autoTrim && boat.boom > 55 && w.kn >= 12) {
 				run.crash++;
 				boat.v *= 0.55;
 				mark(s, 'crash');
@@ -200,10 +220,10 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 
 	// verplaatsen, met drift door de wind
 	const hr = boat.h * RAD;
-	const wr = (wind.dir + 180) * RAD;
-	const lee = 0.12 * (wind.kn / 12) * (1 - 0.6 * clamp(boat.v / 1.5, 0, 1));
-	boat.x += (Math.sin(hr) * boat.v + Math.sin(wr) * lee) * dt;
-	boat.y += (-Math.cos(hr) * boat.v - Math.cos(wr) * lee) * dt;
+	const wrBoat = (w.dir + 180) * RAD;
+	const lee = 0.12 * (w.kn / 12) * (1 - 0.6 * clamp(boat.v / 1.5, 0, 1));
+	boat.x += (Math.sin(hr) * boat.v + Math.sin(wrBoat) * lee) * dt;
+	boat.y += (-Math.cos(hr) * boat.v - Math.cos(wrBoat) * lee) * dt;
 	s.trackTimer += dt;
 	if (s.trackTimer > 0.2) {
 		s.trackTimer = 0;
@@ -215,7 +235,8 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 		}
 	}
 
-	// drenkeling
+	// drenkeling, drijft met de basiswind
+	const wr = (wind.dir + 180) * RAD;
 	if (!s.mob && s.t >= s.mobAt && triggerMob(s)) events.push({ type: 'mob' });
 	const mob = s.mob;
 	if (mob) {
@@ -232,7 +253,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 		if (dist > 8) run.armed = true;
 		if (dist > 18) run.approachFar = true;
 		if (dist < 15 && run.approachFar) {
-			run.approachTh = Math.abs(angDiff(wind.dir, boat.h));
+			run.approachTh = Math.abs(angDiff(w.dir, boat.h));
 			run.approachFar = false;
 		}
 		if (dist > 9) run.inPass = false;

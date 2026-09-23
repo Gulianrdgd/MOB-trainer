@@ -1,3 +1,5 @@
+import type { WindField } from './wind';
+
 export type Method = 'mobje' | 'halvewind';
 export type WindStrength = 'licht' | 'matig' | 'stevig';
 
@@ -73,6 +75,8 @@ export interface RunStats {
 export interface SimConfig {
 	autoTrim: boolean;
 	method: Method;
+	/** Vlagen en windschiftingen. */
+	variableWind?: boolean;
 }
 
 /** Beginsituatie van een run: windrichting, koers en moment van het alarm. */
@@ -81,6 +85,8 @@ export interface Scenario {
 	h: number;
 	/** Simulatietijd van het alarm, Infinity bij zelf starten. */
 	at: number;
+	/** Seed voor vlagen en windschiftingen. */
+	windSeed?: number;
 }
 
 /** Moment op het spoor na het alarm, voor terugkijken. */
@@ -113,7 +119,9 @@ export interface ReplayData {
 
 export interface SimState {
 	config: SimConfig;
+	/** Basiswind; bij variabele wind komen daar vlagen en schiftingen bij. */
 	wind: Wind;
+	windField: WindField | null;
 	boat: Boat;
 	mob: Mob | null;
 	/** Gegooide reddingsboei; drijft net als de drenkeling met de wind mee. */

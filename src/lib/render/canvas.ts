@@ -16,7 +16,8 @@ const TOKENS = [
 	'hull-edge',
 	'sail',
 	'track',
-	'track-mob'
+	'track-mob',
+	'gust'
 ] as const;
 type Token = (typeof TOKENS)[number];
 
@@ -176,6 +177,22 @@ export class Renderer {
 			ctx.lineTo(VW, sy);
 		}
 		ctx.stroke();
+
+		// vlagen: donkere plekken op het water
+		if (s.windField)
+			for (const g of s.windField.gusts) {
+				const [gx, gy] = w2s(g.x, g.y);
+				const r = g.r * sc;
+				if (gx < -r || gx > VW + r || gy < -r || gy > VH + r) continue;
+				const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, r);
+				grad.addColorStop(0, C.gust);
+				grad.addColorStop(0.45, C.gust);
+				grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+				ctx.globalAlpha = Math.min(1, g.k / 0.45);
+				ctx.fillStyle = grad;
+				ctx.fillRect(gx - r, gy - r, 2 * r, 2 * r);
+				ctx.globalAlpha = 1;
+			}
 
 		// golven die met de wind meedrijven
 		const wr = (s.wind.dir + 180) * RAD;

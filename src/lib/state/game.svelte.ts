@@ -2,7 +2,7 @@ import { fmt, fmtTime } from '$lib/format';
 import { Renderer } from '$lib/render/canvas';
 import { BUOY_IN_TIME, KN, SIGHT_R, STRENGTH } from '$lib/sim/constants';
 import { angDiff, courseName } from '$lib/sim/geometry';
-import { createSim, optBoom, step, throwBuoy, triggerMob } from '$lib/sim/physics';
+import { createSim, localWind, optBoom, step, throwBuoy, triggerMob } from '$lib/sim/physics';
 import { mulberry32, randomSeed } from '$lib/sim/rng';
 import { createHintTracker, currentHint, type HintTracker } from '$lib/sim/hints';
 import { createScenario } from '$lib/sim/scenario';
@@ -120,7 +120,12 @@ class Game {
 	private hintTracker: HintTracker = createHintTracker();
 	private scenario: Scenario | null = null;
 	/** Seed, windkracht en methode van de huidige run, om de situatie te kunnen delen. */
-	private run: { seed: number; windStrength: WindStrength; method: Method } | null = null;
+	private run: {
+		seed: number;
+		windStrength: WindStrength;
+		method: Method;
+		variableWind: boolean;
+	} | null = null;
 	private keys: Record<string, boolean> = {};
 	private renderer: Renderer | null = null;
 	private reducedMotion = false;
@@ -251,10 +256,19 @@ class Game {
 			const seed = this.shared?.seed ?? randomSeed();
 			this.shared = null;
 			this.scenario = createScenario(v, mulberry32(seed));
-			this.run = { seed, windStrength: v.windStrength, method: v.method };
+			this.run = {
+				seed,
+				windStrength: v.windStrength,
+				method: v.method,
+				variableWind: v.variableWind === 'on'
+			};
 		}
 		const scn = this.scenario;
-		this.sim = createSim(scn, kn, { autoTrim: v.autoTrim === 'true', method: v.method });
+		this.sim = createSim(scn, kn, {
+			autoTrim: v.autoTrim === 'true',
+			method: v.method,
+			variableWind: v.variableWind === 'on'
+		});
 		this.hintTracker = createHintTracker();
 		this.hint = null;
 		this.renderer?.resetCamera();
@@ -297,6 +311,7 @@ class Game {
 		settings.set('windStrength', sh.windStrength);
 		settings.set('startCourse', String(sh.startCourse));
 		settings.set('method', sh.method);
+		settings.set('variableWind', sh.variableWind ? 'on' : 'off');
 		this.shared = sh;
 	}
 
@@ -337,7 +352,14 @@ class Game {
 	}
 
 	private updateHud() {
-		const { boat, wind, mob, t } = this.sim;
+		const { boat, mob, t } = this.sim;
+		const wind = localWind(this.sim);
+		if (this.sim.windField) {
+			// kompas volgt de wind op de boot, alleen bijwerken als het afgeronde getal verandert
+			const dir = Math.round(wind.dir);
+			const kn = Math.round(wind.kn);
+			if (this.wind?.dir !== dir || this.wind?.kn !== kn) this.wind = { dir, kn };
+		}
 		const d = angDiff(wind.dir, boat.h);
 		const th = Math.abs(d);
 		const h = this.hud;

@@ -6,7 +6,8 @@ const s: SharedScenario = {
 	windStrength: 'stevig',
 	startCourse: 135,
 	method: 'halvewind',
-	seed: 4294967295
+	seed: 4294967295,
+	variableWind: false
 };
 
 describe('gedeelde situatie in de URL', () => {
@@ -15,6 +16,12 @@ describe('gedeelde situatie in de URL', () => {
 		expect(toSearchParams(s).toString()).toBe(
 			'wind=247.5&kracht=stevig&koers=135&methode=halvewind&seed=4294967295'
 		);
+	});
+
+	it('neemt vlagen mee als die aan staan', () => {
+		const v = { ...s, variableWind: true };
+		expect(toSearchParams(v).get('vlagen')).toBe('1');
+		expect(fromSearchParams(toSearchParams(v))).toEqual(v);
 	});
 
 	it.each([

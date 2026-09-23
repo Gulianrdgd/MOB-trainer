@@ -19,6 +19,8 @@ export interface Settings {
 	timeScale: 1 | 2;
 	/** Leerstand: hints tonen tijdens de manoeuvre. */
 	hints: 'on' | 'off';
+	/** Vlagen en windschiftingen. */
+	variableWind: 'on' | 'off';
 }
 
 const KEY = 'mob-settings';
@@ -32,7 +34,8 @@ const defaults: Settings = {
 	showIdeal: 'live',
 	method: 'mobje',
 	timeScale: 1,
-	hints: 'off'
+	hints: 'off',
+	variableWind: 'off'
 };
 
 class SettingsStore {
