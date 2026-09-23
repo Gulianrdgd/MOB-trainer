@@ -4,6 +4,7 @@ import { BUOY_IN_TIME, KN, SIGHT_R, STRENGTH } from '$lib/sim/constants';
 import { angDiff, courseName } from '$lib/sim/geometry';
 import { createSim, optBoom, step, throwBuoy, triggerMob } from '$lib/sim/physics';
 import { mulberry32, randomSeed } from '$lib/sim/rng';
+import { createHintTracker, currentHint, type HintTracker } from '$lib/sim/hints';
 import { createScenario } from '$lib/sim/scenario';
 import { score, type Result } from '$lib/sim/scoring';
 import type { SharedScenario } from '$lib/share';
@@ -107,6 +108,8 @@ class Game {
 
 	/** Stap in de rondleiding voor nieuwe gebruikers, null als die niet loopt. */
 	tutorialStep = $state<number | null>(null);
+	/** Hint van de leerstand, null als die uit staat of er niets te zeggen is. */
+	hint = $state<string | null>(null);
 
 	showPaused = $derived(this.paused && this.overlay === 'none' && this.tutorialStep === null);
 
@@ -114,6 +117,7 @@ class Game {
 	shared = $state.raw<SharedScenario | null>(null);
 
 	private sim: SimState = idleSim();
+	private hintTracker: HintTracker = createHintTracker();
 	private scenario: Scenario | null = null;
 	/** Seed, windkracht en methode van de huidige run, om de situatie te kunnen delen. */
 	private run: { seed: number; windStrength: WindStrength; method: Method } | null = null;
@@ -167,6 +171,7 @@ class Game {
 			if (!this.reducedMotion) this.animT += dt;
 			r.updateCam(s, dt, showIdeal);
 			this.updateHud();
+			this.hint = settings.values.hints === 'on' ? currentHint(this.hintTracker, s) : null;
 		}
 		r.draw(s, { showIdeal, animT: this.animT, reducedMotion: this.reducedMotion });
 	}
@@ -250,6 +255,8 @@ class Game {
 		}
 		const scn = this.scenario;
 		this.sim = createSim(scn, kn, { autoTrim: v.autoTrim === 'true', method: v.method });
+		this.hintTracker = createHintTracker();
+		this.hint = null;
 		this.renderer?.resetCamera();
 		this.wind = { dir: scn.dir, kn };
 		this.runManualMob = v.mobMode === 'manual';

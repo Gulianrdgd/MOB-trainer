@@ -6,11 +6,23 @@
 	const showBuoy = $derived(game.running && game.hasMob && !game.hasBuoy && !game.finished);
 </script>
 
-<div
-	class="pointer-events-none absolute bottom-[78px] left-1/2 -translate-x-1/2 text-[13px] whitespace-nowrap text-muted touch:hidden"
->
-	←/→ roer, ↑ aantrekken, ↓ vieren, spatie alles los, M man over boord, B boei, P pauze
-</div>
+{#if game.hint}
+	<div
+		role="status"
+		class={[
+			'pointer-events-none absolute bottom-[78px] left-1/2 max-w-[calc(100%-24px)] -translate-x-1/2 panel px-3 py-1.5 text-center text-[16px] font-semibold max-[520px]:bottom-[74px]',
+			showBuoy && 'max-[520px]:bottom-[140px]'
+		]}
+	>
+		{game.hint}
+	</div>
+{:else}
+	<div
+		class="pointer-events-none absolute bottom-[78px] left-1/2 -translate-x-1/2 text-[13px] whitespace-nowrap text-muted touch:hidden"
+	>
+		←/→ roer, ↑ aantrekken, ↓ vieren, spatie alles los, M man over boord, B boei, P pauze
+	</div>
+{/if}
 
 <div
 	class="pointer-events-none absolute right-2.5 bottom-2.5 left-2.5 flex items-end justify-between gap-2"
@@ -39,7 +51,7 @@
 	{#if showBuoy}
 		<button
 			type="button"
-			class="pointer-events-auto flex h-[58px] min-w-[84px] flex-col items-center justify-center rounded-xl bg-buoy px-3 text-[15px] leading-[1.05] font-bold text-white max-[520px]:h-[54px] max-[520px]:min-w-[64px]"
+			class="pointer-events-auto flex h-[58px] min-w-[84px] flex-col items-center justify-center rounded-xl bg-buoy px-3 text-[15px] leading-[1.05] font-bold text-white max-[520px]:absolute max-[520px]:bottom-[64px] max-[520px]:left-1/2 max-[520px]:h-[54px] max-[520px]:-translate-x-1/2"
 			onclick={() => game.throwBuoy()}
 		>
 			<kbd class="keycap text-[16px]">B</kbd><small class="text-[12px] font-medium">boei</small>

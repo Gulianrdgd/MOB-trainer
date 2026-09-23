@@ -99,6 +99,9 @@ export function spline(pts: Vec[], n = 14): Vec[] {
 	return out;
 }
 
+/** Eerste hint na het alarm. */
+export const REACT = 'Reddingsboei gooien (B) en naar de drenkeling blijven wijzen';
+
 /** Ideaal pad vanaf de boot naar de drenkeling op positie mob, relatief ten opzichte van mob. */
 export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): IdealPath {
 	const W = wind.dir * RAD;
@@ -115,7 +118,9 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 	const r0 = turnRadius(Math.max(boat.v, 0.8));
 
 	if (method === 'halvewind') {
-		const B = new Builder(a0, b0, phi0).straight(react).arc(90, r0);
+		const B = new Builder(a0, b0, phi0).straight(react);
+		const iTurn = B.pts.length - 1;
+		B.arc(90, r0);
 		const D = Math.max(wind.kn * 2.6, 30, B.a + 12);
 		const L = 16;
 		const s60 = Math.sin(60 * RAD);
@@ -134,11 +139,23 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 			rest.map((p) => ({ x: p.a, y: p.b })),
 			24
 		).map((p) => ({ a: p.x, b: p.y }));
+		// sp[j] komt op index base + j; elk splinesegment is 24 punten
+		const base = B.pts.length - 1;
+		const seg = (k: number) => base + k * 24;
 		return {
 			pts: B.pts.concat(sp.slice(1)).map(toW),
 			labels: [
 				{ p: toW(rest[3]), text: 'overstag' },
 				{ p: toW(rest[5]), text: 'oploeven, vieren' }
+			],
+			phases: [
+				{ from: 0, hint: REACT },
+				{ from: iTurn, hint: 'Naar halve wind sturen' },
+				{ from: base, hint: 'Halve wind van de drenkeling af varen' },
+				{ from: seg(2) + 12, hint: 'Overstag' },
+				{ from: seg(4), hint: 'Halve wind terug, drenkeling voor je' },
+				{ from: seg(5), hint: 'Oploeven en vieren om af te remmen' },
+				{ from: seg(6), hint: 'Killend bij: vieren' }
 			]
 		};
 	}
@@ -155,18 +172,27 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 	const dA = tk.a;
 	const dB = tk.b;
 	const plan = (R: number) => {
-		const B = new Builder(a0, b0, phi0).straight(react).arc(RUN, r0);
+		const B = new Builder(a0, b0, phi0).straight(react);
+		const iTurn = B.pts.length - 1;
+		B.arc(RUN, r0);
 		const runStart = B.mark();
+		const iRun = B.pts.length - 1;
 		B.straight(R);
 		const runEnd = B.mark();
+		const iLuff = B.pts.length - 1;
 		B.arc(CLOSE, turnRadius(legSpeed(110, wind.kn)));
 		const luffEnd = B.mark();
+		const iClose = B.pts.length - 1;
 		const qa = -B.a - dA;
 		const qb = -B.b - dB;
 		const h1 = H(CLOSE);
 		const h2 = H(-CLOSE);
 		return {
 			B,
+			iTurn,
+			iRun,
+			iLuff,
+			iClose,
 			runStart,
 			runEnd,
 			luffEnd,
@@ -195,8 +221,10 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 	const B = P.B;
 	B.straight(Math.max(0, P.s));
 	const tackAt = B.mark();
+	const iTack = B.pts.length - 1;
 	B.arc(-CLOSE, rTack);
 	const appStart = B.mark();
+	const iApp = B.pts.length - 1;
 	B.straight(Math.hypot(B.a, B.b));
 	const mid = (p: AB, q: AB): AB => ({ a: (p.a + q.a) / 2, b: (p.b + q.b) / 2 });
 	return {
@@ -206,6 +234,15 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 			{ p: toW(P.luffEnd), text: 'oploeven' },
 			{ p: toW(tackAt), text: 'drenkeling dwars: overstag' },
 			{ p: toW(mid(appStart, { a: 0, b: 0 })), text: 'killend bij' }
+		],
+		phases: [
+			{ from: 0, hint: REACT },
+			{ from: P.iTurn, hint: 'Nu afvallen tot bijna voor de wind' },
+			{ from: P.iRun, hint: 'Voor de wind doorvaren, pas op voor een gijp' },
+			{ from: P.iLuff, hint: 'Oploeven naar aan de wind, schoot aantrekken' },
+			{ from: P.iClose, hint: 'Aan de wind doorvaren tot de drenkeling dwars ligt' },
+			{ from: iTack, hint: 'Drenkeling dwars: overstag' },
+			{ from: iApp, hint: 'Killend bij: vieren om vaart te minderen' }
 		]
 	};
 }

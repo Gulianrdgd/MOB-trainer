@@ -17,6 +17,8 @@ export interface Settings {
 	showIdeal: ShowIdeal;
 	method: Method;
 	timeScale: 1 | 2;
+	/** Leerstand: hints tonen tijdens de manoeuvre. */
+	hints: 'on' | 'off';
 }
 
 const KEY = 'mob-settings';
@@ -29,7 +31,8 @@ const defaults: Settings = {
 	autoTrim: 'false',
 	showIdeal: 'live',
 	method: 'mobje',
-	timeScale: 1
+	timeScale: 1,
+	hints: 'off'
 };
 
 class SettingsStore {

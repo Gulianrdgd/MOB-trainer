@@ -43,6 +43,10 @@
 		{ value: 'mobje', label: 'MOB-je (via voor de wind)' },
 		{ value: 'halvewind', label: 'Halve wind' }
 	];
+	const hintOptions: Option<Settings['hints']>[] = [
+		{ value: 'off', label: 'Uit' },
+		{ value: 'on', label: 'Hints tonen' }
+	];
 	const ideals: Option<Settings['showIdeal']>[] = [
 		{ value: 'live', label: 'Tijdens het varen' },
 		{ value: 'after', label: 'Pas na afloop' },
@@ -108,6 +112,8 @@
 			value={v.showIdeal}
 			onchange={set('showIdeal')}
 		/>
+
+		<Segmented label="Leerstand" options={hintOptions} value={v.hints} onchange={set('hints')} />
 
 		<button
 			type="button"

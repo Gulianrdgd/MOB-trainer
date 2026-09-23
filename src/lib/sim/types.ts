@@ -33,10 +33,18 @@ export interface PathLabel {
 	text: string;
 }
 
+/** Vanaf punt `from` van het ideale pad geldt deze hint. */
+export interface PathPhase {
+	from: number;
+	hint: string;
+}
+
 /** Ideaal pad, relatief ten opzichte van de drenkeling. */
 export interface IdealPath {
 	pts: Vec[];
 	labels: PathLabel[];
+	/** Fasen voor de leerstand, oplopend op `from`. */
+	phases: PathPhase[];
 }
 
 export interface Mob extends Vec {
