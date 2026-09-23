@@ -1,0 +1,9 @@
+node_modules
+build
+.svelte-kit
+.git
+.vscode
+.claude
+Dockerfile
+docker-compose.yml
+*.md

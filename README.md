@@ -1,42 +1,64 @@
-# sv
+# Man-over-boord trainer
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de halve-windmethode. Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. De site is volledig statisch; er is geen server-runtime nodig.
 
-## Creating a project
+## Lokaal draaien
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+Je hebt Node 24 en pnpm nodig (`corepack enable` zet de juiste pnpm-versie klaar).
 
 ```sh
-# recreate this project
-deno x sv@0.17.1 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography" ai-tools="ide:claude-code+delivery:plugin" --install deno MOB-trainer
+pnpm install
+pnpm dev
 ```
 
-## Developing
+Open daarna http://localhost:5173.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Testen
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm test      # Vitest: unit tests, autopiloot-regressietest en pariteit met het prototype
+pnpm check     # svelte-check en TypeScript
+pnpm lint      # Prettier en ESLint
 ```
 
-## Building
+De pariteitstest draait de simulatiecode uit `reference/man-over-boord.html` naast de nieuwe code en eist na elke stap exact dezelfde toestand. Laat dat bestand daarom staan.
 
-To create a production version of your app:
+## Builden
 
 ```sh
-npm run build
+pnpm build     # schrijft de site naar build/, met .br- en .gz-versies van elk bestand
+pnpm preview   # bekijk de build op http://localhost:4173
 ```
 
-You can preview the production build with `npm run preview`.
+## Deployen
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+De `Dockerfile` bouwt de site (en draait eerst de tests) en serveert hem met Caddy op poort 80:
+
+- gehashte bestanden in `/_app/immutable/` worden een jaar gecachet
+- `index.html` en de overige bestanden krijgen `Cache-Control: no-cache`
+- Caddy levert de voorgecomprimeerde brotli- en gzip-bestanden uit
+
+Achter Traefik:
+
+1. Pas in `docker-compose.yml` het domein (`mob.example.com`), de entrypoint (`websecure`), de certresolver (`letsencrypt`) en het netwerk (`traefik`) aan je eigen opstelling aan.
+2. Start de container:
+
+   ```sh
+   docker compose up -d --build
+   ```
+
+Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zetten.
+
+## Contactgegevens in de footer
+
+Vul `src/lib/config.ts` in. Een link die op `TODO` staat of leeg is, wordt niet getoond.
+
+## Structuur
+
+```
+src/lib/sim/        simulatie zonder DOM: fysica, ideaal pad, scoring, seedbare RNG
+src/lib/render/     tekenen op het canvas
+src/lib/state/      spelstatus, game loop, invoer en instellingen (runes)
+src/lib/components/ Svelte-componenten
+reference/          het oorspronkelijke prototype in één HTML-bestand
+```

@@ -1,0 +1,30 @@
+# Achter Traefik: TLS gebeurt daar, deze container praat alleen HTTP op poort 80.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	root * /srv
+
+	# Gehashte bestanden veranderen nooit van inhoud: een jaar cachen.
+	@immutable path /_app/immutable/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# Al het andere (index.html, robots.txt, ...) altijd opnieuw valideren.
+	@revalidate not path /_app/immutable/*
+	header @revalidate Cache-Control "no-cache"
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	try_files {path} {path}.html {path}/index.html
+	# Voorgecomprimeerde .br/.gz als de browser ze accepteert, anders on-the-fly.
+	encode zstd gzip
+	file_server {
+		precompressed br gzip
+	}
+}
