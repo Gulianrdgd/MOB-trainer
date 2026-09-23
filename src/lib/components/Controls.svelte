@@ -14,12 +14,16 @@
 <div
 	class="pointer-events-none absolute right-2.5 bottom-2.5 left-2.5 flex items-end justify-between gap-2"
 >
-	<div class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
+	<div data-tour="rudder" class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
 		<HoldButton bind:held={game.hold.left}
-			>◀<small class="text-[12px] font-medium opacity-75">roer</small></HoldButton
+			><kbd class="keycap text-[16px]">←</kbd><small class="text-[12px] font-medium opacity-75"
+				>roer</small
+			></HoldButton
 		>
 		<HoldButton bind:held={game.hold.right}
-			>▶<small class="text-[12px] font-medium opacity-75">roer</small></HoldButton
+			><kbd class="keycap text-[16px]">→</kbd><small class="text-[12px] font-medium opacity-75"
+				>roer</small
+			></HoldButton
 		>
 	</div>
 	{#if showMob}
@@ -31,15 +35,21 @@
 			MOB!
 		</button>
 	{/if}
-	<div class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
+	<div data-tour="sheet" class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
 		<HoldButton bind:held={game.hold.in} disabled={game.runAutoTrim}
-			>▲<small class="text-[12px] font-medium opacity-75">aantrekken</small></HoldButton
+			><kbd class="keycap text-[16px]">↑</kbd><small class="text-[12px] font-medium opacity-75"
+				>aantrekken</small
+			></HoldButton
 		>
 		<HoldButton bind:held={game.hold.out} disabled={game.runAutoTrim}
-			>▼<small class="text-[12px] font-medium opacity-75">vieren</small></HoldButton
+			><kbd class="keycap text-[16px]">↓</kbd><small class="text-[12px] font-medium opacity-75"
+				>vieren</small
+			></HoldButton
 		>
 		<HoldButton bind:held={game.hold.loose}
-			>Los<small class="text-[12px] font-medium opacity-75">alles</small></HoldButton
+			><kbd class="keycap text-[12px]">spatie</kbd><small class="text-[12px] font-medium opacity-75"
+				>alles los</small
+			></HoldButton
 		>
 	</div>
 </div>

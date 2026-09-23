@@ -49,9 +49,9 @@ Achter Traefik:
 
 Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zetten.
 
-## Contactgegevens in de footer
+## Footer
 
-Vul `src/lib/config.ts` in. Een link die op `TODO` staat of leeg is, wordt niet getoond.
+Naam en GitHub-link staan in `src/lib/config.ts`. Een link die op `TODO` staat of leeg is, wordt niet getoond.
 
 ## Structuur
 

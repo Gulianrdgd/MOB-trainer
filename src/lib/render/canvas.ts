@@ -232,7 +232,6 @@ export class Renderer {
 		if (s.mob) this.drawMob(s.mob, s.t, o.reducedMotion);
 		this.drawBoat(s);
 		if (s.mob) this.drawOffscreen(s.mob);
-		this.drawScaleBar();
 	}
 
 	private drawIdeal(s: SimState, showIdeal: ShowIdeal) {
@@ -419,26 +418,5 @@ export class Renderer {
 		ctx.lineTo(-8, 9);
 		ctx.fill();
 		ctx.restore();
-	}
-
-	private drawScaleBar() {
-		const { ctx, C, VW, VH } = this;
-		const sc = this.cam.s;
-		const target = (VW * 0.18) / sc;
-		const nice = [5, 10, 20, 25, 50, 100, 200, 500].find((n) => n >= target) || 500;
-		const px = nice * sc;
-		const x = 14;
-		const y = VH - 92;
-		ctx.strokeStyle = C.muted;
-		ctx.fillStyle = C.muted;
-		ctx.lineWidth = 2;
-		ctx.beginPath();
-		ctx.moveTo(x, y - 4);
-		ctx.lineTo(x, y);
-		ctx.lineTo(x + px, y);
-		ctx.lineTo(x + px, y - 4);
-		ctx.stroke();
-		ctx.font = `600 13px ${FONT}`;
-		ctx.fillText(nice + ' m', x + px + 6, y + 4);
 	}
 }

@@ -3,7 +3,6 @@
 	import type { Result } from '$lib/sim/scoring';
 	import { game } from '$lib/state/game.svelte';
 	import Dialog from './Dialog.svelte';
-	import Footer from './Footer.svelte';
 	import ShareButton from './ShareButton.svelte';
 	import { focusOnMount } from './focus';
 
@@ -59,6 +58,5 @@
 				<ShareButton {scenario} class={secondary} />
 			</div>
 		{/if}
-		<Footer />
 	{/snippet}
 </Dialog>
