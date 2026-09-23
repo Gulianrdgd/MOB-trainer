@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Man-over-boord trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sea:#d7e7ea; --sea-line:#bcd3d8; --wave:#9fbcc4;
+  --ink:#16384a; --muted:#56717e;
+  --panel:rgba(246,250,250,.93); --panel-edge:#b7ccd2;
+  --buoy:#ff5e14; --good:#1f7a4a; --warn:#b36b00;
+  --hull:#fbfbf8; --hull-edge:#16384a; --sail:#ffffff;
+  --track:rgba(22,56,74,.35); --track-mob:rgba(255,94,20,.85);
+  --btn:#16384a; --btn-ink:#f4f8f8; --btn-on:#ff5e14;
+  --veil:rgba(215,231,234,.72); --ideal:#1f7a4a;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sea:#0f2430; --sea-line:#183544; --wave:#2a5163;
+    --ink:#e2eef1; --muted:#8fa9b4;
+    --panel:rgba(14,32,42,.92); --panel-edge:#2b4b5a;
+    --hull:#e9eef0; --hull-edge:#07161e; --sail:#f4f7f8;
+    --track:rgba(200,225,232,.35); --track-mob:rgba(255,120,60,.9);
+    --btn:#dbe8ec; --btn-ink:#0f2430;
+    --veil:rgba(10,24,32,.72); --ideal:#5fd08f;
+  }
+}
+:root[data-theme="dark"]{
+  --sea:#0f2430; --sea-line:#183544; --wave:#2a5163;
+  --ink:#e2eef1; --muted:#8fa9b4;
+  --panel:rgba(14,32,42,.92); --panel-edge:#2b4b5a;
+  --hull:#e9eef0; --hull-edge:#07161e; --sail:#f4f7f8;
+  --track:rgba(200,225,232,.35); --track-mob:rgba(255,120,60,.9);
+  --btn:#dbe8ec; --btn-ink:#0f2430;
+  --veil:rgba(10,24,32,.72); --ideal:#5fd08f;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;height:100%;position:relative;overflow:hidden;background:var(--sea);color:var(--ink);
+  font-family:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;font-size:16px;line-height:1.35;
+  -webkit-user-select:none;user-select:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.panel{background:var(--panel);border:1px solid var(--panel-edge);border-radius:10px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+b,.num{font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible{outline:3px solid var(--buoy);outline-offset:2px}
+
+#hud{position:absolute;top:10px;left:10px;width:196px;padding:10px 12px}
+#h-status{font-weight:700;font-size:18px;line-height:1.15}
+#h-status.alarm{color:var(--buoy)}
+#hud .grid{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;margin-top:6px;font-size:15px}
+#hud .grid span{color:var(--muted)}
+#hud .grid b{text-align:right;font-weight:600}
+#h-koers{margin-top:6px;font-weight:600;font-size:15px}
+.trim{margin-top:8px}
+.trimlabel{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+#h-luff{color:var(--warn);font-weight:600}
+.bar{position:relative;height:10px;border-radius:5px;background:var(--sea-line);margin-top:3px}
+#trim-opt{position:absolute;top:-3px;width:3px;height:16px;background:var(--good);border-radius:2px;transform:translateX(-1px)}
+#trim-cur{position:absolute;top:1px;width:8px;height:8px;background:var(--ink);border-radius:50%;transform:translateX(-4px)}
+.trimends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:1px}
+
+#side{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.windbox{padding:8px 10px;text-align:center;width:122px}
+.windbox svg{width:96px;height:96px;display:block;margin:0 auto}
+#w-text{font-weight:600;font-size:15px;margin-top:2px}
+.btnrow{display:flex;gap:6px}
+.small{height:36px;min-width:40px;padding:0 10px;border-radius:8px;border:1px solid var(--panel-edge);background:var(--panel);font-weight:600}
+
+#controls{position:absolute;left:10px;right:10px;bottom:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;pointer-events:none}
+#controls .grp{display:flex;gap:8px;pointer-events:auto}
+.ctl{height:58px;min-width:62px;padding:0 12px;border:0;border-radius:12px;background:var(--btn);color:var(--btn-ink);
+  font-weight:700;font-size:15px;line-height:1.05;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ctl small{font-weight:500;font-size:12px;opacity:.75}
+.ctl.held{background:var(--btn-on);color:#fff}
+.ctl:disabled{opacity:.35}
+#mobBtn{background:var(--buoy);color:#fff;pointer-events:auto;min-width:84px}
+#keyhint{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);font-size:13px;color:var(--muted);white-space:nowrap}
+@media (hover:none){#keyhint{display:none}}
+
+#toast{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:10px;font-weight:700;font-size:20px;
+  background:var(--ink);color:var(--sea);opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;max-width:90%}
+#toast.show{opacity:1}
+#toast.alarm{background:var(--buoy);color:#fff}
+
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--veil);padding:12px;z-index:5}
+.overlay.hidden{display:none}
+.card{width:100%;max-width:560px;max-height:100%;overflow:auto;padding:18px 20px;border-radius:14px;background:var(--panel);border:1px solid var(--panel-edge)}
+.card h1{font-size:28px;line-height:1.1;margin:0 0 4px;font-weight:700}
+.card h2{font-size:17px;margin:14px 0 6px;font-weight:600}
+.card p{margin:4px 0;max-width:62ch}
+.lead{color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:7px 11px;border-radius:8px;border:1px solid var(--panel-edge);background:transparent;font-weight:600}
+.seg button.on{background:var(--ink);color:var(--sea);border-color:var(--ink)}
+.compass{display:grid;grid-template-columns:repeat(3,54px);gap:6px}
+.compass button{height:40px;padding:0}
+.go{margin-top:16px;width:100%;height:52px;border:0;border-radius:12px;background:var(--buoy);color:#fff;font-weight:700;font-size:19px}
+.help{margin-top:12px;font-size:15px;color:var(--muted)}
+.help kbd{font:inherit;font-weight:600;color:var(--ink);border:1px solid var(--panel-edge);border-radius:4px;padding:0 4px}
+.stats{display:grid;grid-template-columns:auto 1fr;gap:3px 16px;margin:10px 0}
+.stats span{color:var(--muted)}
+.stats b{font-weight:600}
+.fb{margin:6px 0;padding-left:12px;border-left:3px solid var(--panel-edge)}
+.fb.good{border-color:var(--good)}
+.fb.warn{border-color:var(--warn)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.row button{flex:1;min-width:130px;height:46px;border-radius:10px;border:1px solid var(--panel-edge);background:transparent;font-weight:700}
+.row button.primary{background:var(--ink);color:var(--sea);border-color:var(--ink)}
+#backToResult{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);height:44px;padding:0 18px;border-radius:10px;border:0;background:var(--ink);color:var(--sea);font-weight:700;z-index:4}
+.hidden{display:none!important}
+
+@media (max-width:520px){
+  #hud{width:168px;padding:8px 10px}
+  #hud .grid{font-size:14px}
+  #h-status{font-size:16px}
+  .windbox{width:100px;padding:6px}
+  .windbox svg{width:76px;height:76px}
+  .ctl{min-width:52px;height:54px;padding:0 8px;font-size:14px}
+  #controls .grp{gap:6px}
+}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Zeilsimulator, bovenaanzicht"></canvas>
+
+<div id="hud" class="panel" aria-live="polite">
+  <div id="h-status">Vrij varen</div>
+  <div class="grid">
+    <span>Snelheid</span><b id="h-speed">0,0 kn</b>
+    <span>Koers</span><b id="h-course">000°</b>
+    <span>Windhoek</span><b id="h-twa">0°</b>
+    <span>Afstand</span><b id="h-dist">-</b>
+    <span>Peiling</span><b id="h-brg">-</b>
+    <span>Tijd</span><b id="h-time">-</b>
+  </div>
+  <div id="h-koers">-</div>
+  <div class="trim">
+    <div class="trimlabel"><span>Schoot</span><span id="h-luff"></span></div>
+    <div class="bar"><div id="trim-opt"></div><div id="trim-cur"></div></div>
+    <div class="trimends"><span>strak</span><span>los</span></div>
+  </div>
+</div>
+
+<div id="side">
+  <div class="panel windbox">
+    <svg viewBox="-50 -50 100 100" aria-hidden="true">
+      <circle r="44" fill="none" stroke="var(--panel-edge)" stroke-width="2"/>
+      <text x="0" y="-32" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">N</text>
+      <text x="35" y="4" text-anchor="middle" font-size="11" fill="var(--muted)">O</text>
+      <text x="0" y="41" text-anchor="middle" font-size="11" fill="var(--muted)">Z</text>
+      <text x="-35" y="4" text-anchor="middle" font-size="11" fill="var(--muted)">W</text>
+      <g id="w-arrow">
+        <line x1="0" y1="-26" x2="0" y2="18" stroke="var(--buoy)" stroke-width="5" stroke-linecap="round"/>
+        <path d="M-10 12 L0 28 L10 12 Z" fill="var(--buoy)"/>
+      </g>
+    </svg>
+    <div id="w-text">Wind</div>
+  </div>
+  <div class="btnrow">
+    <button class="small" id="btnSettings" aria-label="Instellingen">Instellingen</button>
+    <button class="small" id="btnPause" aria-label="Pauze">II</button>
+    <button class="small" id="btnSpeed" aria-label="Simulatiesnelheid">1×</button>
+  </div>
+</div>
+
+<div id="keyhint">←/→ roer, ↑ aantrekken, ↓ vieren, spatie alles los, M man over boord, P pauze</div>
+<div id="controls">
+  <div class="grp">
+    <button class="ctl" data-hold="left">◀<small>roer</small></button>
+    <button class="ctl" data-hold="right">▶<small>roer</small></button>
+  </div>
+  <button class="ctl hidden" id="mobBtn">MOB!</button>
+  <div class="grp">
+    <button class="ctl" data-hold="in" id="bIn">▲<small>aantrekken</small></button>
+    <button class="ctl" data-hold="out" id="bOut">▼<small>vieren</small></button>
+    <button class="ctl" data-hold="loose">Los<small>alles</small></button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="setup" class="overlay">
+  <div class="card">
+    <h1>Man over boord oefenen</h1>
+    <p class="lead">Kies de omstandigheden. Zodra de drenkeling te water gaat, loopt de tijd. Je haalt hem op door langzamer dan 1,5 knoop naast hem te komen.</p>
+
+    <h2>Wind uit</h2>
+    <div class="seg compass" data-key="windDir">
+      <button data-val="315">NW</button><button data-val="0">N</button><button data-val="45">NO</button>
+      <button data-val="270">W</button><button data-val="random" title="Willekeurig">?</button><button data-val="90">O</button>
+      <button data-val="225">ZW</button><button data-val="180">Z</button><button data-val="135">ZO</button>
+    </div>
+
+    <h2>Windkracht</h2>
+    <div class="seg" data-key="windStrength">
+      <button data-val="licht">Licht, 8 kn</button><button data-val="matig">Matig, 12 kn</button><button data-val="stevig">Stevig, 18 kn</button>
+    </div>
+
+    <h2>Koers op het moment van het alarm</h2>
+    <div class="seg" data-key="startCourse">
+      <button data-val="random">Willekeurig</button><button data-val="45">Aan de wind</button><button data-val="90">Halve wind</button><button data-val="135">Ruime wind</button><button data-val="172">Voor de wind</button>
+    </div>
+
+    <h2>Alarm</h2>
+    <div class="seg" data-key="mobMode">
+      <button data-val="auto">Onverwacht</button><button data-val="manual">Zelf starten</button>
+    </div>
+
+    <h2>Schoot</h2>
+    <div class="seg" data-key="autoTrim">
+      <button data-val="false">Zelf trimmen</button><button data-val="true">Automatisch</button>
+    </div>
+
+    <h2>Methode voor de ideale koers</h2>
+    <div class="seg" data-key="method">
+      <button data-val="mobje">MOB-je (via voor de wind)</button><button data-val="halvewind">Halve wind</button>
+    </div>
+
+    <h2>Ideale koers tonen</h2>
+    <div class="seg" data-key="showIdeal">
+      <button data-val="live">Tijdens het varen</button><button data-val="after">Pas na afloop</button><button data-val="off">Uit</button>
+    </div>
+
+    <button class="go" id="btnStart">Start</button>
+
+    <div class="help">
+      <p><kbd>←</kbd> <kbd>→</kbd> roer. <kbd>↑</kbd> schoot aantrekken, <kbd>↓</kbd> vieren, <kbd>spatie</kbd> alles los (zolang je hem vasthoudt). <kbd>M</kbd> man over boord, <kbd>P</kbd> pauze, <kbd>R</kbd> instellingen. Op een telefoon gebruik je de knoppen onderin.</p>
+      <p>Het groene streepje bij Schoot is de ideale stand. Vier je verder dan dat, dan klappert het zeil en verlies je vaart. Zo rem je af bij de drenkeling. Gijp je met de schoot ver uit bij matige of stevige wind, dan krijg je een klapgijp.</p>
+    </div>
+  </div>
+</div>
+
+<div id="result" class="overlay hidden">
+  <div class="card">
+    <h1 id="r-title">Drenkeling aan boord</h1>
+    <div class="stats" id="r-stats"></div>
+    <div id="r-fb"></div>
+    <div class="row">
+      <button class="primary" id="btnAgain">Nog een keer</button>
+      <button id="btnSame">Zelfde situatie</button>
+    </div>
+    <div class="row">
+      <button id="btnTrack">Bekijk je spoor</button>
+      <button id="btnSetup2">Instellingen</button>
+    </div>
+  </div>
+</div>
+<button id="backToResult" class="hidden">Terug naar resultaat</button>
+
+<div id="paused" class="overlay hidden">
+  <div class="card" style="max-width:320px;text-align:center">
+    <h1>Pauze</h1>
+    <div class="row"><button class="primary" id="btnResume">Verder varen</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+const KN=0.514444, RAD=Math.PI/180;
+const PICK_V=1.5*KN, PICK_R=4.5;
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const norm360=a=>((a%360)+360)%360;
+const angDiff=(a,b)=>((a-b)%360+540)%360-180; // a-b in [-180,180)
+const S_angDiff=angDiff;
+const fmt=(v,d=1)=>v.toFixed(d).replace('.',',');
+const DIRS=['N','NNO','NO','ONO','O','OZO','ZO','ZZO','Z','ZZW','ZW','WZW','W','WNW','NW','NNW'];
+const dirName=a=>DIRS[Math.round(norm360(a)/22.5)%16];
+const STRENGTH={licht:8,matig:12,stevig:18};
+
+const settings={windDir:'random',windStrength:'matig',startCourse:'random',mobMode:'auto',autoTrim:'false',showIdeal:'live',method:'mobje',timeScale:1};
+try{const s=JSON.parse(localStorage.getItem('mob-settings')||'{}');Object.assign(settings,s);}catch(e){}
+const save=()=>{try{localStorage.setItem('mob-settings',JSON.stringify(settings));}catch(e){}};
+
+const cv=$('#c'), ctx=cv.getContext('2d');
+let VW=0,VH=0,DPR=1,C={};
+function readTheme(){const cs=getComputedStyle(document.documentElement);
+  ['ideal','sea','sea-line','wave','ink','muted','buoy','good','hull','hull-edge','sail','track','track-mob'].forEach(k=>C[k]=cs.getPropertyValue('--'+k).trim());}
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);const r=cv.getBoundingClientRect();VW=r.width;VH=r.height;
+  cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);readTheme();}
+addEventListener('resize',resize);
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTheme);}catch(e){}
+new MutationObserver(readTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+resize();
+
+/* ---------- input ---------- */
+const keys={}, hold={};
+const ctl=n=>{
+  if(n==='left')return keys.arrowleft||keys.a||hold.left;
+  if(n==='right')return keys.arrowright||keys.d||hold.right;
+  if(n==='in')return keys.arrowup||keys.w||hold.in;
+  if(n==='out')return keys.arrowdown||keys.s||hold.out;
+  if(n==='loose')return keys[' ']||hold.loose;
+};
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k)&&!e.target.closest('.card'))e.preventDefault();
+  keys[k]=true;
+  if(e.repeat)return;
+  if(k==='m')triggerMOB();
+  if(k==='p')togglePause();
+  if(k==='r')openSetup();
+});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in hold)hold[k]=false;});
+document.querySelectorAll('[data-hold]').forEach(b=>{
+  const n=b.dataset.hold;
+  const on=e=>{e.preventDefault();hold[n]=true;b.classList.add('held');try{b.setPointerCapture(e.pointerId);}catch(_){}};
+  const off=()=>{hold[n]=false;b.classList.remove('held');};
+  b.addEventListener('pointerdown',on);
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,off));
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+});
+
+/* ---------- physics helpers ---------- */
+const POLAR=[[0,0],[28,0],[40,.55],[50,.8],[70,.95],[95,1],[120,.95],[150,.82],[180,.72]];
+function polar(th){for(let i=1;i<POLAR.length;i++){const[a,va]=POLAR[i-1],[b,vb]=POLAR[i];if(th<=b)return va+(vb-va)*(th-a)/(b-a);}return .72;}
+const optBoom=th=>clamp(th-25,0,85);
+function sail(th,boom){
+  if(th<28)return{p:0,luff:1,disp:Math.min(boom,th)};
+  const o=optBoom(th), eff=Math.min(boom,th), diff=eff-o;
+  if(diff>0){const l=clamp(diff/12,0,1);return{p:1-l,luff:l,disp:eff};}
+  return{p:1-.7*Math.min(1,-diff/80),luff:0,disp:eff};
+}
+function courseName(th){
+  if(th<30)return'In de wind';if(th<70)return'Aan de wind';if(th<110)return'Halve wind';if(th<158)return'Ruime wind';return'Voor de wind';
+}
+
+/* ---------- state ---------- */
+let running=false,paused=false,finished=false,viewTrack=false;
+let wind={dir:0,kn:12}, boat=null, mob=null, t=0, mobAt=Infinity, track=[], mobIdx=-1, trackTimer=0;
+let run={}, lastRun=null, cam={x:0,y:0,s:8}, prevTh=90, prevSide=1, gustT=0;
+
+function newRun(repeat){
+  let dir,h,at;
+  wind.kn=STRENGTH[settings.windStrength]||12;
+  if(repeat&&lastRun){dir=lastRun.dir;h=lastRun.h;at=lastRun.at;}
+  else{
+    dir=settings.windDir==='random'?Math.floor(Math.random()*16)*22.5:+settings.windDir;
+    const twa=settings.startCourse==='random'?[45,60,90,110,135,165][Math.floor(Math.random()*6)]:+settings.startCourse;
+    const side=Math.random()<.5?1:-1;
+    h=norm360(dir+side*twa);
+    at=settings.mobMode==='auto'?6+Math.random()*14:Infinity;
+  }
+  lastRun={dir,h,at};
+  wind.dir=dir; mobAt=at;
+  const th=Math.abs(angDiff(dir,h));
+  const b=optBoom(th);
+  boat={x:0,y:0,h,v:polar(th)*sail(th,b).p*wind.kn*.42*KN,boom:b,rudder:0,luff:0,disp:b};
+  mob=null;t=0;track=[{x:0,y:0}];mobIdx=-1;trackTimer=0;
+  run={flybys:0,tacks:0,gybes:0,crash:0,maxDist:0,armed:false,inPass:false,approachTh:null,approachFar:false};
+  prevTh=th;prevSide=angDiff(dir,h)>=0?1:-1;
+  cam={x:0,y:0,s:baseScale()};
+  finished=false;viewTrack=false;paused=false;running=true;
+  $('#result').classList.add('hidden');$('#backToResult').classList.add('hidden');$('#paused').classList.add('hidden');
+  $('#mobBtn').classList.toggle('hidden',settings.mobMode!=='manual');
+  const man=settings.autoTrim!=='true';$('#bIn').disabled=!man;$('#bOut').disabled=!man;
+  $('#w-arrow').setAttribute('transform',`rotate(${dir})`);
+  $('#w-text').textContent=`${dirName(dir)}, ${wind.kn} kn`;
+}
+
+// Het ideale pad wordt opgebouwd vanuit de echte toestand van de boot bij het alarm:
+// eerst een reactiemoment rechtdoor, daarna bochten met een straal die past bij de snelheid.
+// Lokaal assenstelsel: b = richting loef, a = dwars op de wind naar de kant waar de koers nu heen wijst.
+// phi = hoek van de koers t.o.v. de wind op deze boeg (negatief = andere boeg).
+function turnRadius(v){return Math.max(2.5,v/(.75*38*RAD*clamp(v/1.2,.12,1)));}
+function legSpeed(th){return Math.max(.8,polar(th)*wind.kn*.42*KN);}
+function Builder(a,b,phi){
+  const pts=[{a,b}];
+  const B={pts,get a(){return a},get b(){return b},get phi(){return phi},
+    straight(len){if(len<=0)return B;const n=Math.max(1,Math.ceil(len));const sa=Math.sin(phi*RAD),cb=Math.cos(phi*RAD);
+      for(let i=1;i<=n;i++)pts.push({a:a+sa*len*i/n,b:b+cb*len*i/n});a+=sa*len;b+=cb*len;return B;},
+    arc(to,r){while(Math.abs(to-phi)>1e-6){const d=clamp(to-phi,-3,3),mid=phi+d/2,ds=r*Math.abs(d)*RAD;
+      a+=Math.sin(mid*RAD)*ds;b+=Math.cos(mid*RAD)*ds;phi+=d;pts.push({a,b});}return B;},
+    mark(){return{a,b};}};
+  return B;
+}
+function idealPath(){
+  const W=wind.dir*RAD,u={x:Math.sin(W),y:-Math.cos(W)},v={x:Math.cos(W),y:Math.sin(W)};
+  const side=angDiff(wind.dir,boat.h)>=0?1:-1, e={x:-side*v.x,y:-side*v.y};
+  const toW=p=>({x:e.x*p.a+u.x*p.b,y:e.y*p.a+u.y*p.b});
+  const rel={x:boat.x-mob.x,y:boat.y-mob.y};
+  const a0=rel.x*e.x+rel.y*e.y,b0=rel.x*u.x+rel.y*u.y,phi0=Math.abs(angDiff(wind.dir,boat.h));
+  const react=boat.v*1.2+.5, r0=turnRadius(Math.max(boat.v,.8));
+  if(settings.method==='halvewind'){
+    const B=Builder(a0,b0,phi0).straight(react).arc(90,r0);
+    const D=Math.max(wind.kn*2.6,30,B.a+12),L=16,s60=Math.sin(60*RAD),c60=Math.cos(60*RAD);
+    const rest=[B.mark(),{a:Math.max(D*.35,B.a+3),b:-1},{a:D,b:-1.5},{a:D+5,b:4},{a:D-6,b:5},{a:L*s60,b:-L*c60},{a:L*s60*.3,b:-L*c60*.3},{a:0,b:0}];
+    const sp=spline(rest.map(p=>({x:p.a,y:p.b})),24).map(p=>({a:p.x,b:p.y}));
+    const pts=B.pts.concat(sp.slice(1)).map(toW);
+    return{pts,labels:[[toW(rest[3]),'overstag'],[toW(rest[5]),'oploeven, vieren']]};
+  }
+  // MOB-je: afvallen tot voor de wind (15° marge tegen gijpen), oploeven naar aan de wind,
+  // doorvaren tot de drenkeling dwars ligt, overstag, dan aan de wind killend bij.
+  const RUN=165,CLOSE=45,Lt=20,rTack=2.5;
+  const H=ph=>({a:Math.sin(ph*RAD),b:Math.cos(ph*RAD)});
+  const tk=Builder(0,0,CLOSE).arc(-CLOSE,rTack),dA=tk.a,dB=tk.b; // verplaatsing tijdens overstag
+  const plan=R=>{
+    const B=Builder(a0,b0,phi0).straight(react).arc(RUN,r0);
+    const runStart=B.mark();B.straight(R);const runEnd=B.mark();
+    B.arc(CLOSE,turnRadius(legSpeed(110)));const luffEnd=B.mark();
+    const qa=-B.a-dA,qb=-B.b-dB,h1=H(CLOSE),h2=H(-CLOSE);
+    return{B,runStart,runEnd,luffEnd,s:qa*h1.a+qb*h1.b,t:qa*h2.a+qb*h2.b};
+  };
+  // run zo lang dat er een echt aan-de-windse rak is (dwarspeiling) en genoeg aanloop om af te remmen
+  const solve=(f,target)=>{if(f(plan(0))>=target)return 0;let lo=0,hi=250;for(let i=0;i<40;i++){const m=(lo+hi)/2;f(plan(m))<target?lo=m:hi=m;}return hi;};
+  const R=Math.max(solve(p=>p.t,Lt),solve(p=>p.s,5));
+  const P=plan(R),B=P.B;
+  B.straight(Math.max(0,P.s));const tackAt=B.mark();
+  B.arc(-CLOSE,rTack);const appStart=B.mark();
+  B.straight(Math.hypot(B.a,B.b));
+  const mid=(p,q)=>({a:(p.a+q.a)/2,b:(p.b+q.b)/2});
+  return{pts:B.pts.map(toW),labels:[
+    [toW(mid(P.runStart,P.runEnd)),'voor de wind'],[toW(P.luffEnd),'oploeven'],
+    [toW(tackAt),'drenkeling dwars: overstag'],[toW(mid(appStart,{a:0,b:0})),'killend bij']]};
+}
+function spline(pts,n=14){
+  const out=[];
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+    for(let j=0;j<n;j++){const t=j/n,t2=t*t,t3=t2*t;
+      out.push({x:.5*(2*p1.x+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+                y:.5*(2*p1.y+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)});}
+  }
+  out.push(pts[pts.length-1]);return out;
+}
+function drawIdeal(){
+  if(!mob||!mob.ideal||settings.showIdeal==='off')return;
+  if(settings.showIdeal==='after'&&!finished)return;
+  const sp=mob.ideal.pts;
+  ctx.save();ctx.strokeStyle=C.ideal;ctx.lineWidth=3;ctx.setLineDash([9,7]);ctx.lineCap='round';ctx.globalAlpha=.85;
+  ctx.beginPath();sp.forEach((p,i)=>{const[x,y]=w2s(mob.x+p.x,mob.y+p.y);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();
+  ctx.setLineDash([]);
+  // richtingspijltjes
+  ctx.fillStyle=C.ideal;
+  for(let i=10;i<sp.length-2;i+=16){const[a,b]=w2s(mob.x+sp[i].x,mob.y+sp[i].y),[c,d]=w2s(mob.x+sp[i+1].x,mob.y+sp[i+1].y);
+    ctx.save();ctx.translate(a,b);ctx.rotate(Math.atan2(d-b,c-a));ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-5,-6);ctx.lineTo(-5,6);ctx.fill();ctx.restore();}
+  ctx.font='600 14px "Barlow Semi Condensed", sans-serif';ctx.globalAlpha=1;
+  mob.ideal.labels.forEach(([p,txt])=>{const[x,y]=w2s(mob.x+p.x,mob.y+p.y);ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill();ctx.fillText(txt,x+8,y-6);});
+  ctx.restore();
+}
+
+function triggerMOB(){
+  if(!running||finished||mob||paused)return;
+  const hr=boat.h*RAD;
+  mob={x:boat.x-Math.sin(hr)*3.3,y:boat.y+Math.cos(hr)*3.3,t0:t};
+  mobIdx=track.length;track.push({x:boat.x,y:boat.y});
+  mob.ideal=idealPath();
+  run.startTh=Math.abs(angDiff(wind.dir,boat.h));
+  $('#mobBtn').classList.add('hidden');
+  toast('Man over boord!',true,2200);
+}
+
+let toastTimer=0;
+function toast(msg,alarm,ms=1600){const el=$('#toast');el.textContent=msg;el.classList.toggle('alarm',!!alarm);el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),ms);}
+
+function update(dt){
+  t+=dt;
+  // rudder
+  const want=(ctl('right')?1:0)-(ctl('left')?1:0);
+  boat.rudder+=clamp(want-boat.rudder,-3.2*dt,3.2*dt);
+  const d=angDiff(wind.dir,boat.h), th=Math.abs(d), side=d>=0?1:-1;
+  // sheet
+  if(ctl('loose'))boat.boom=Math.min(90,boat.boom+140*dt);
+  else if(settings.autoTrim==='true'){const o=optBoom(th);boat.boom+=clamp(o-boat.boom,-60*dt,60*dt);}
+  else{if(ctl('in'))boat.boom=Math.max(0,boat.boom-38*dt);if(ctl('out'))boat.boom=Math.min(90,boat.boom+38*dt);}
+  const sp=sail(th,boat.boom);boat.luff=sp.luff;boat.disp=sp.disp;
+  // speed
+  const tgt=polar(th)*sp.p*wind.kn*.42*KN;
+  const k=tgt>boat.v?.35:.3;
+  boat.v+=(tgt-boat.v)*Math.min(1,k*dt);
+  boat.v-=boat.v*Math.abs(boat.rudder)*.12*dt;
+  if(boat.v<0)boat.v=0;
+  // steering
+  boat.h=norm360(boat.h+boat.rudder*38*clamp(boat.v/1.2,.12,1)*dt);
+  if(th<35&&boat.v<.6)boat.h=norm360(boat.h-side*5*(1-boat.v/.6)*dt); // bow blows off in irons
+  // tack / gybe
+  const d2=angDiff(wind.dir,boat.h),side2=d2>=0?1:-1;
+  if(side2!==prevSide){
+    if(prevTh<90){run.tacks++;toast('Overstag');}
+    else{
+      run.gybes++;
+      if(settings.autoTrim!=='true'&&boat.boom>55&&wind.kn>=12){run.crash++;boat.v*=.55;toast('Klapgijp! Haal de schoot in voor je gijpt.',true,2400);}
+      else toast('Gijp');
+    }
+  }
+  prevSide=side2;prevTh=Math.abs(d2);
+  // move
+  const hr=boat.h*RAD, wr=(wind.dir+180)*RAD;
+  const lee=.12*(wind.kn/12)*(1-.6*clamp(boat.v/1.5,0,1));
+  boat.x+=(Math.sin(hr)*boat.v+Math.sin(wr)*lee)*dt;
+  boat.y+=(-Math.cos(hr)*boat.v-Math.cos(wr)*lee)*dt;
+  trackTimer+=dt;if(trackTimer>.2){trackTimer=0;track.push({x:boat.x,y:boat.y});if(track.length>6000)track.splice(1,1),mobIdx=Math.max(0,mobIdx-1);}
+  // MOB
+  if(!mob&&t>=mobAt)triggerMOB();
+  if(mob){
+    const md=.04*(wind.kn/12);
+    mob.x+=Math.sin(wr)*md*dt;mob.y-=Math.cos(wr)*md*dt;
+    const dist=Math.hypot(mob.x-boat.x,mob.y-boat.y);
+    run.maxDist=Math.max(run.maxDist,dist);
+    if(dist>8)run.armed=true;
+    if(dist>18)run.approachFar=true;
+    if(dist<15&&run.approachFar){run.approachTh=Math.abs(angDiff(wind.dir,boat.h));run.approachFar=false;}
+    if(dist>9)run.inPass=false;
+    if(run.armed&&dist<PICK_R){
+      if(boat.v<PICK_V)finish(dist);
+      else if(!run.inPass){run.inPass=true;run.flybys++;toast(`Te hard: ${fmt(boat.v/KN)} kn. Rond opnieuw.`,true,2000);}
+    }
+  }
+}
+
+function finish(){
+  finished=true;
+  const time=t-mob.t0;
+  const d=angDiff(wind.dir,boat.h), th=Math.abs(d);
+  const brg=Math.atan2(mob.x-boat.x,-(mob.y-boat.y))/RAD;
+  const rel=angDiff(brg,boat.h);
+  let where;
+  if(Math.abs(rel)<25)where='recht voor de boeg';
+  else if(Math.abs(rel)>155)where='achter de spiegel';
+  else{const sb=rel>0;const loef=(sb&&d>=0)||(!sb&&d<0);where=`${sb?'stuurboord':'bakboord'}, ${loef?'loefzijde':'lijzijde'}`;}
+  const ap=run.approachTh!=null?run.approachTh:th;
+  const m=Math.floor(time/60),s=Math.floor(time%60);
+  $('#r-title').textContent=`Aan boord in ${m}:${String(s).padStart(2,'0')}`;
+  $('#r-stats').innerHTML=[
+    ['Wind',`${dirName(wind.dir)}, ${wind.kn} kn`],
+    ['Koers bij alarm',courseName(run.startTh)+` (${Math.round(run.startTh)}°)`],
+    ['Aanloopkoers',courseName(ap)+` (${Math.round(ap)}°)`],
+    ['Snelheid bij oppakken',fmt(boat.v/KN)+' kn'],
+    ['Drenkeling',where],
+    ['Verste afstand',Math.round(run.maxDist)+' m'],
+    ['Overstag / gijp',`${run.tacks} / ${run.gybes}`],
+    ['Te hard gepasseerd',String(run.flybys)]
+  ].map(([a,b])=>`<span>${a}</span><b>${b}</b>`).join('');
+  const fb=[];
+  if(ap>=40&&ap<=110)fb.push(['good','Je liep aan met aan de wind tot halve wind. Daar kun je vaart regelen met de schoot.']);
+  else if(ap>110)fb.push(['warn','Je liep aan met ruime of voor de wind. Vieren remt dan nauwelijks af, dus je bent afhankelijk van geluk.']);
+  else fb.push(['warn','Je schoot op in de wind. Dat kan, maar je hebt weinig controle als je de afstand verkeerd inschat.']);
+  if(run.flybys)fb.push(['warn',`${run.flybys}× te hard langs de drenkeling. Begin eerder met vieren.`]);
+  if(run.crash)fb.push(['warn',`${run.crash}× klapgijp. Schoot eerst inhalen, dan gijpen.`]);
+  if(run.maxDist>60)fb.push(['warn',`Je kwam tot ${Math.round(run.maxDist)} m van de drenkeling. Hoe verder weg, hoe groter de kans dat je hem uit het oog verliest.`]);
+  if(!run.flybys&&!run.crash&&ap>=40&&ap<=110&&time<90)fb.push(['good','Strak uitgevoerd.']);
+  if(settings.showIdeal!=='off')fb.push(['good',`Groene stippellijn: ideale koers volgens ${settings.method==='halvewind'?'de halve-windmethode':'het MOB-je'}. Oranje: jouw spoor. Bekijk ze samen via "Bekijk je spoor".`]);
+  $('#r-fb').innerHTML=fb.map(([c,x])=>`<p class="fb ${c}">${x}</p>`).join('');
+  setTimeout(()=>{if(finished)$('#result').classList.remove('hidden');},700);
+}
+
+/* ---------- camera & drawing ---------- */
+const baseScale=()=>Math.min(VW,VH)/70;
+const minScale=()=>Math.min(VW,VH)/320;
+const CY=()=>VH*.54;
+function updateCam(dt){
+  let tx=boat.x,ty=boat.y,sc=baseScale();
+  if(finished){
+    const pts=track.slice(Math.max(0,mobIdx));pts.push({x:mob.x,y:mob.y});
+    if(mob.ideal&&settings.showIdeal!=='off')mob.ideal.pts.forEach(p=>pts.push({x:mob.x+p.x,y:mob.y+p.y}));
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    pts.forEach(p=>{x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);});
+    tx=(x0+x1)/2;ty=(y0+y1)/2;
+    sc=clamp(Math.min(VW*.8/(x1-x0+10),VH*.6/(y1-y0+10)),minScale()*.6,baseScale()*1.4);
+  }else if(mob){
+    let x0=Math.min(boat.x,mob.x),x1=Math.max(boat.x,mob.x),y0=Math.min(boat.y,mob.y),y1=Math.max(boat.y,mob.y);
+    if(mob.ideal&&settings.showIdeal==='live')mob.ideal.pts.forEach(p=>{x0=Math.min(x0,mob.x+p.x);x1=Math.max(x1,mob.x+p.x);y0=Math.min(y0,mob.y+p.y);y1=Math.max(y1,mob.y+p.y);});
+    tx=(x0+x1)/2;ty=(y0+y1)/2;
+    sc=clamp(Math.min(VW*.72/(x1-x0+2),VH*.5/(y1-y0+2)),minScale(),baseScale());
+  }
+  const f=Math.min(1,dt*3);cam.x+=(tx-cam.x)*f;cam.y+=(ty-cam.y)*f;cam.s+=(sc-cam.s)*Math.min(1,dt*2);
+}
+const w2s=(x,y)=>[VW/2+(x-cam.x)*cam.s,CY()+(y-cam.y)*cam.s];
+const hash=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);};
+
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle=C.sea;ctx.fillRect(0,0,VW,VH);
+  if(!boat)return;
+  const s=cam.s;
+  const x0=cam.x-(VW/2)/s,x1=cam.x+(VW/2)/s,y0=cam.y-CY()/s,y1=cam.y+(VH-CY())/s;
+  // chart grid
+  const g=s>3?50:100;
+  ctx.strokeStyle=C['sea-line'];ctx.lineWidth=1;ctx.beginPath();
+  for(let x=Math.floor(x0/g)*g;x<=x1;x+=g){const[sx]=w2s(x,0);ctx.moveTo(sx,0);ctx.lineTo(sx,VH);}
+  for(let y=Math.floor(y0/g)*g;y<=y1;y+=g){const[,sy]=w2s(0,y);ctx.moveTo(0,sy);ctx.lineTo(VW,sy);}
+  ctx.stroke();
+  // waves drifting downwind
+  const wr=(wind.dir+180)*RAD, ux=Math.sin(wr), uy=-Math.cos(wr), px=-uy, py=ux;
+  const sp=Math.max(11,34/s), drift=gustT*(.6+wind.kn/20);
+  const ox=ux*drift, oy=uy*drift;
+  const len=Math.max(1.3*s,5), bow=Math.max(.5*s,2);
+  ctx.strokeStyle=C.wave;ctx.lineWidth=1.4;ctx.lineCap='round';ctx.beginPath();
+  for(let gx=Math.floor((x0-ox)/sp)-1;gx<=Math.ceil((x1-ox)/sp)+1;gx++){
+    for(let gy=Math.floor((y0-oy)/sp)-1;gy<=Math.ceil((y1-oy)/sp)+1;gy++){
+      const wx=gx*sp+ox+(hash(gx,gy)-.5)*sp*.8, wy=gy*sp+oy+(hash(gy,gx)-.5)*sp*.8;
+      const[cx,cy]=w2s(wx,wy);
+      ctx.moveTo(cx-px*len,cy-py*len);ctx.quadraticCurveTo(cx+ux*bow,cy+uy*bow,cx+px*len,cy+py*len);
+    }
+  }
+  ctx.stroke();
+  // track
+  const line=(a,b,col,w)=>{if(b-a<1)return;ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineJoin='round';ctx.beginPath();
+    for(let i=a;i<b;i++){const[sx,sy]=w2s(track[i].x,track[i].y);i===a?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);}
+    const[bx,by]=w2s(boat.x,boat.y);ctx.lineTo(bx,by);ctx.stroke();};
+  drawIdeal();
+  if(mobIdx<0)line(0,track.length,C.track,2);
+  else{ctx.setLineDash([4,5]);line(0,mobIdx+1,C.track,2);ctx.setLineDash([]);line(mobIdx,track.length,C['track-mob'],2.5);}
+  if(mob)drawMob();
+  drawBoat();
+  if(mob)drawOffscreen();
+  drawScaleBar();
+}
+
+function drawBoat(){
+  const[sx,sy]=w2s(boat.x,boat.y), s=cam.s;
+  const d=angDiff(wind.dir,boat.h), sgn=d>=0?-1:1; // boom to leeward
+  if(s<3.2){ctx.fillStyle=C.hull;ctx.globalAlpha=.35;ctx.beginPath();ctx.arc(sx,sy,14,0,7);ctx.fill();ctx.globalAlpha=1;}
+  ctx.save();ctx.translate(sx,sy);ctx.rotate(boat.h*RAD);ctx.scale(s,s);
+  const lw=1.2/s;
+  // hull
+  ctx.beginPath();ctx.moveTo(0,-3);ctx.bezierCurveTo(1.05,-2.1,1.18,.6,.95,3);ctx.lineTo(-.95,3);ctx.bezierCurveTo(-1.18,.6,-1.05,-2.1,0,-3);ctx.closePath();
+  ctx.fillStyle=C.hull;ctx.fill();ctx.strokeStyle=C['hull-edge'];ctx.lineWidth=lw*1.3;ctx.stroke();
+  // rudder
+  const ra=boat.rudder*30*RAD;
+  ctx.beginPath();ctx.moveTo(0,3);ctx.lineTo(Math.sin(ra)*1,3+Math.cos(ra)*1);ctx.lineWidth=lw*2.4;ctx.stroke();
+  // sails
+  const flap=boat.luff;
+  const drawSail=(ax,ay,b,L,phase)=>{
+    const bx=sgn*Math.sin(b*RAD)*L, by=Math.cos(b*RAD)*L;
+    const nx=sgn*Math.cos(b*RAD), ny=-Math.sin(b*RAD);
+    const bulge=L*(.2*(1-flap)+flap*.14*Math.sin(t*22+phase));
+    const mx=ax+bx/2+nx*bulge, my=ay+by/2+ny*bulge;
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo(mx,my,ax+bx,ay+by);ctx.lineTo(ax,ay);
+    ctx.fillStyle=C.sail;ctx.fill();ctx.strokeStyle=C['hull-edge'];ctx.lineWidth=lw;ctx.stroke();
+    return[ax+bx,ay+by];
+  };
+  drawSail(0,-2.85,Math.min(boat.disp*.75+6,90),2.0,1.7);
+  const[ex,ey]=drawSail(0,-.6,boat.disp,3.0,0);
+  ctx.beginPath();ctx.moveTo(0,-.6);ctx.lineTo(ex,ey);ctx.lineWidth=lw*2.2;ctx.stroke();
+  // mast + wind vane
+  ctx.fillStyle=C['hull-edge'];ctx.beginPath();ctx.arc(0,-.6,.16,0,7);ctx.fill();
+  const va=(wind.dir+180-boat.h)*RAD;
+  ctx.strokeStyle=C.buoy;ctx.lineWidth=lw*2;ctx.beginPath();ctx.moveTo(0,-.6);ctx.lineTo(Math.sin(va)*1.1,-.6-Math.cos(va)*1.1);ctx.stroke();
+  ctx.restore();
+}
+
+function drawMob(){
+  const[sx,sy]=w2s(mob.x,mob.y), r=Math.max(.55*cam.s,6);
+  const pulse=(t*1.2)%1;
+  ctx.strokeStyle=C.buoy;ctx.globalAlpha=1-pulse;ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy,r+4+pulse*r*2.2,0,7);ctx.stroke();ctx.globalAlpha=1;
+  ctx.lineWidth=r*.55;ctx.strokeStyle=C.buoy;ctx.beginPath();ctx.arc(sx,sy,r,0,7);ctx.stroke();
+  ctx.strokeStyle='#fff';ctx.lineWidth=r*.55;
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+.4;ctx.beginPath();ctx.arc(sx,sy,r,a,a+.35);ctx.stroke();}
+  ctx.fillStyle=C.ink;ctx.beginPath();ctx.arc(sx,sy,r*.42,0,7);ctx.fill();
+}
+
+function drawOffscreen(){
+  const[sx,sy]=w2s(mob.x,mob.y), m=26;
+  if(sx>m&&sx<VW-m&&sy>m&&sy<VH-m)return;
+  const cx=VW/2,cy=CY(),dx=sx-cx,dy=sy-cy;
+  const k=Math.min((VW/2-m)/Math.abs(dx||1e-6),(VH/2-m)/Math.abs(dy||1e-6));
+  const ex=cx+dx*k,ey=cy+dy*k,a=Math.atan2(dy,dx);
+  ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=C.buoy;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-8,-9);ctx.lineTo(-8,9);ctx.fill();ctx.restore();
+}
+
+function drawScaleBar(){
+  const s=cam.s, target=VW*.18/s;
+  const nice=[5,10,20,25,50,100,200,500].find(n=>n>=target)||500;
+  const px=nice*s,x=14,y=VH-92;
+  ctx.strokeStyle=C.muted;ctx.fillStyle=C.muted;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x,y-4);ctx.lineTo(x,y);ctx.lineTo(x+px,y);ctx.lineTo(x+px,y-4);ctx.stroke();
+  ctx.font='600 13px "Barlow Semi Condensed", sans-serif';ctx.fillText(nice+' m',x+px+6,y+4);
+}
+
+/* ---------- HUD ---------- */
+function hud(){
+  if(!boat)return;
+  const d=angDiff(wind.dir,boat.h), th=Math.abs(d);
+  $('#h-speed').textContent=fmt(boat.v/KN)+' kn';
+  $('#h-course').textContent=String(Math.round(boat.h)%360).padStart(3,'0')+'°';
+  $('#h-twa').textContent=Math.round(th)+'°';
+  $('#h-koers').textContent=th<30?'In de wind':`${courseName(th)}, ${d>=0?'SB':'BB'}-boeg`;
+  $('#trim-opt').style.left=(optBoom(th)/90*100)+'%';
+  $('#trim-cur').style.left=(boat.boom/90*100)+'%';
+  $('#h-luff').textContent=th<28?'staat in de wind':boat.luff>.35?'klappert':'';
+  const st=$('#h-status');
+  if(mob){
+    const dist=Math.hypot(mob.x-boat.x,mob.y-boat.y), time=t-mob.t0;
+    st.textContent=finished?'Aan boord':'Man over boord!';st.classList.toggle('alarm',!finished);
+    $('#h-dist').textContent=Math.round(dist)+' m';
+    const rb=S_angDiff(Math.atan2(mob.x-boat.x,-(mob.y-boat.y))/RAD,boat.h),ab=Math.abs(rb);
+    $('#h-brg').textContent=ab<12?'recht vooruit':ab>168?'recht achter':(Math.abs(ab-90)<12?'dwars ':Math.round(ab)+'° ')+(rb>0?'SB':'BB');
+    $('#h-time').textContent=Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
+  }else{
+    st.textContent=settings.mobMode==='manual'?'Druk op MOB als je klaar bent':'Vrij varen, blijf alert';st.classList.remove('alarm');
+    $('#h-dist').textContent='-';$('#h-brg').textContent='-';$('#h-time').textContent='-';
+  }
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(running&&!paused&&boat){
+    if(!finished)for(let i=0;i<settings.timeScale;i++)update(dt);
+    gustT+=dt;updateCam(dt);hud();
+  }
+  draw();requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- UI wiring ---------- */
+function syncSetup(){document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',String(settings[g.dataset.key])===b.dataset.val)));}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{settings[b.parentElement.dataset.key]=b.dataset.val;syncSetup();save();}));
+syncSetup();
+function openSetup(){paused=true;$('#setup').classList.remove('hidden');$('#result').classList.add('hidden');$('#paused').classList.add('hidden');$('#backToResult').classList.add('hidden');}
+function togglePause(){if(!running||finished||!$('#setup').classList.contains('hidden'))return;paused=!paused;$('#paused').classList.toggle('hidden',!paused);}
+$('#btnStart').onclick=()=>{$('#setup').classList.add('hidden');newRun(false);};
+$('#btnSettings').onclick=openSetup;
+$('#btnPause').onclick=togglePause;
+$('#btnResume').onclick=togglePause;
+$('#btnSpeed').textContent=settings.timeScale+'×';
+$('#btnSpeed').onclick=()=>{settings.timeScale=settings.timeScale===1?2:1;$('#btnSpeed').textContent=settings.timeScale+'×';save();};
+$('#mobBtn').onclick=triggerMOB;
+$('#btnAgain').onclick=()=>newRun(false);
+$('#btnSame').onclick=()=>newRun(true);
+$('#btnSetup2').onclick=openSetup;
+$('#btnTrack').onclick=()=>{$('#result').classList.add('hidden');$('#backToResult').classList.remove('hidden');};
+$('#backToResult').onclick=()=>{$('#backToResult').classList.add('hidden');$('#result').classList.remove('hidden');};
+
+// idle background before first start
+wind.dir=225;boat={x:0,y:0,h:315,v:0,boom:20,rudder:0,luff:0,disp:20};cam.s=baseScale();
+})();
+</script>
+</body>
+</html>
