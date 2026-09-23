@@ -2,6 +2,17 @@
 
 Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de halve-windmethode. Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. De site is volledig statisch; er is geen server-runtime nodig.
 
+## Wat zit erin
+
+- MOB-je en halve-windmethode, met de ideale koers als groene stippellijn
+- terugkijken na afloop: kaart met je spoor, tijdlijn en snelheidsgrafiek
+- reddingsboei gooien (B) en een zicht-indicator, beide in de feedback
+- leerstand met hints per fase, en vlagen en windschiftingen als optie
+- situatie delen via een link (wind, windkracht, startkoers, methode, seed, vlagen)
+- geschiedenis van de laatste 50 pogingen, alleen in de browser (localStorage)
+- rondleiding bij de eerste start
+- werkt offline als app (manifest en service worker)
+
 ## Lokaal draaien
 
 Je hebt Node 24 en pnpm nodig (`corepack enable` zet de juiste pnpm-versie klaar).
@@ -47,7 +58,11 @@ Achter Traefik:
    docker compose up -d --build
    ```
 
-Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zetten.
+Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zetten. Zorg dan dat `service-worker.js` en `index.html` niet lang gecachet worden, anders zien bezoekers updates pas laat.
+
+## Offline en installeren
+
+Na het eerste bezoek zet de service worker de hele app in de cache; daarna werkt hij zonder verbinding, ook met een gedeelde link. Op een telefoon kun je hem via "Zet op beginscherm" als app installeren. De iconen staan in `static/icons/`; de PNG's zijn gemaakt van `icon.svg` en `maskable.svg`.
 
 ## Footer
 

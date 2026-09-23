@@ -1,0 +1,17 @@
+{
+	"name": "Man-over-boord trainer",
+	"short_name": "MOB-trainer",
+	"description": "Oefen de man-over-boordmanoeuvre in een eenvoudige zeilsimulator.",
+	"lang": "nl",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#d7e7ea",
+	"theme_color": "#16384a",
+	"icons": [
+		{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+		{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+	]
+}
