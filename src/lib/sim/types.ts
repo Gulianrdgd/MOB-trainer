@@ -1,0 +1,105 @@
+export type Method = 'mobje' | 'halvewind';
+export type WindStrength = 'licht' | 'matig' | 'stevig';
+
+export interface Vec {
+	x: number;
+	y: number;
+}
+
+/** Wind uit richting dir (graden, 0 = noord), sterkte in knopen. */
+export interface Wind {
+	dir: number;
+	kn: number;
+}
+
+/**
+ * Wereldcoördinaten in meters, x naar oost, y naar zuid (schermrichting).
+ * h is de koers in graden, v de snelheid in m/s, boom de gevraagde giekhoek,
+ * disp de werkelijke giekhoek (begrensd door de wind), luff 0..1 hoeveel het zeil klappert.
+ */
+export interface Boat {
+	x: number;
+	y: number;
+	h: number;
+	v: number;
+	boom: number;
+	rudder: number;
+	luff: number;
+	disp: number;
+}
+
+export interface PathLabel {
+	p: Vec;
+	text: string;
+}
+
+/** Ideaal pad, relatief ten opzichte van de drenkeling. */
+export interface IdealPath {
+	pts: Vec[];
+	labels: PathLabel[];
+}
+
+export interface Mob extends Vec {
+	/** Simulatietijd waarop de drenkeling te water ging. */
+	t0: number;
+	ideal: IdealPath;
+}
+
+export interface RunStats {
+	flybys: number;
+	tacks: number;
+	gybes: number;
+	crash: number;
+	maxDist: number;
+	armed: boolean;
+	inPass: boolean;
+	approachTh: number | null;
+	approachFar: boolean;
+	startTh: number;
+}
+
+export interface SimConfig {
+	autoTrim: boolean;
+	method: Method;
+}
+
+/** Beginsituatie van een run: windrichting, koers en moment van het alarm. */
+export interface Scenario {
+	dir: number;
+	h: number;
+	/** Simulatietijd van het alarm, Infinity bij zelf starten. */
+	at: number;
+}
+
+export interface SimState {
+	config: SimConfig;
+	wind: Wind;
+	boat: Boat;
+	mob: Mob | null;
+	t: number;
+	mobAt: number;
+	track: Vec[];
+	/** Index in track waar het alarm viel, -1 zolang er geen drenkeling is. */
+	mobIdx: number;
+	trackTimer: number;
+	run: RunStats;
+	prevTh: number;
+	prevSide: number;
+	finished: boolean;
+}
+
+export interface Input {
+	left: boolean;
+	right: boolean;
+	in: boolean;
+	out: boolean;
+	loose: boolean;
+}
+
+export type SimEvent =
+	| { type: 'tack' }
+	| { type: 'gybe' }
+	| { type: 'crash' }
+	| { type: 'flyby'; speed: number }
+	| { type: 'mob' }
+	| { type: 'finish' };
