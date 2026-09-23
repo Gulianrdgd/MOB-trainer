@@ -4,11 +4,13 @@
 	import { game } from '$lib/state/game.svelte';
 	import Dialog from './Dialog.svelte';
 	import Footer from './Footer.svelte';
+	import ShareButton from './ShareButton.svelte';
 	import { focusOnMount } from './focus';
 
 	let { result }: { result: Result } = $props();
 
 	const title = $derived(`Aan boord in ${fmtTime(result.time)}`);
+	const scenario = $derived(game.currentScenario());
 	const rowBtn = 'h-[46px] min-w-[130px] flex-1 rounded-[10px] border font-bold';
 	const secondary = `${rowBtn} border-panel-edge bg-transparent`;
 	const primary = `${rowBtn} border-ink bg-ink text-sea`;
@@ -52,6 +54,11 @@
 			</button>
 			<button type="button" class={secondary} onclick={() => game.openSetup()}>Instellingen</button>
 		</div>
+		{#if scenario}
+			<div class="mt-2 flex flex-wrap gap-2">
+				<ShareButton {scenario} class={secondary} />
+			</div>
+		{/if}
 		<Footer />
 	{/snippet}
 </Dialog>

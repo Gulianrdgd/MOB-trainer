@@ -6,7 +6,16 @@ import { createSim, optBoom, step, triggerMob } from '$lib/sim/physics';
 import { mulberry32, randomSeed } from '$lib/sim/rng';
 import { createScenario } from '$lib/sim/scenario';
 import { score, type Result } from '$lib/sim/scoring';
-import type { Input, Scenario, SimEvent, SimState, Wind } from '$lib/sim/types';
+import type { SharedScenario } from '$lib/share';
+import type {
+	Input,
+	Method,
+	Scenario,
+	SimEvent,
+	SimState,
+	Wind,
+	WindStrength
+} from '$lib/sim/types';
 import { settings } from './settings.svelte';
 
 /** Welk venster over het canvas ligt. 'track' = resultaat verborgen om het spoor te bekijken. */
@@ -71,8 +80,13 @@ class Game {
 
 	showPaused = $derived(this.paused && this.overlay !== 'setup');
 
+	/** Situatie uit een gedeelde link; geldt voor de eerstvolgende start. */
+	shared = $state.raw<SharedScenario | null>(null);
+
 	private sim: SimState = idleSim();
 	private scenario: Scenario | null = null;
+	/** Seed, windkracht en methode van de huidige run, om de situatie te kunnen delen. */
+	private run: { seed: number; windStrength: WindStrength; method: Method } | null = null;
 	private keys: Record<string, boolean> = {};
 	private renderer: Renderer | null = null;
 	private reducedMotion = false;
@@ -181,9 +195,13 @@ class Game {
 	newRun(repeat: boolean) {
 		const v = settings.values;
 		const kn = STRENGTH[v.windStrength] ?? 12;
-		const scn =
-			repeat && this.scenario ? this.scenario : createScenario(v, mulberry32(randomSeed()));
-		this.scenario = scn;
+		if (!repeat || !this.scenario || !this.run) {
+			const seed = this.shared?.seed ?? randomSeed();
+			this.shared = null;
+			this.scenario = createScenario(v, mulberry32(seed));
+			this.run = { seed, windStrength: v.windStrength, method: v.method };
+		}
+		const scn = this.scenario;
 		this.sim = createSim(scn, kn, { autoTrim: v.autoTrim === 'true', method: v.method });
 		this.renderer?.resetCamera();
 		this.wind = { dir: scn.dir, kn };
@@ -196,6 +214,25 @@ class Game {
 		this.running = true;
 		this.overlay = 'none';
 		clearTimeout(this.resultTimer);
+	}
+
+	/** Neemt een gedeelde situatie over in de instellingen; de volgende start gebruikt de seed. */
+	loadShared(sh: SharedScenario) {
+		settings.set('windDir', String(sh.windDir));
+		settings.set('windStrength', sh.windStrength);
+		settings.set('startCourse', String(sh.startCourse));
+		settings.set('method', sh.method);
+		this.shared = sh;
+	}
+
+	/** De situatie van de huidige run, om te delen. */
+	currentScenario(): SharedScenario | null {
+		if (!this.scenario || !this.run) return null;
+		return {
+			windDir: this.scenario.dir,
+			startCourse: Math.round(Math.abs(angDiff(this.scenario.h, this.scenario.dir))),
+			...this.run
+		};
 	}
 
 	triggerMob() {

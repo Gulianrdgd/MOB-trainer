@@ -9,9 +9,14 @@
 	import WindCompass from '$lib/components/WindCompass.svelte';
 	import { game } from '$lib/state/game.svelte';
 	import { settings } from '$lib/state/settings.svelte';
+	import { fromSearchParams } from '$lib/share';
 	import { onMount } from 'svelte';
 
-	onMount(() => settings.load());
+	onMount(() => {
+		settings.load();
+		const shared = fromSearchParams(new URLSearchParams(location.search));
+		if (shared) game.loadShared(shared);
+	});
 
 	const small = 'panel h-9 min-w-10 rounded-lg px-2.5 font-semibold';
 </script>

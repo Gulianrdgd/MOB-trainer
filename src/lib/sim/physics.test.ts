@@ -131,3 +131,25 @@ describe('step', () => {
 		expect(s.boat.v).toBeLessThan(0.72 * 12 * 0.42 * KN);
 	});
 });
+
+describe('createScenario', () => {
+	const random = { windDir: 'random', startCourse: 'random', mobMode: 'auto' } as const;
+
+	it('geeft met een vastgelegde wind en koers dezelfde situatie als met willekeurig', () => {
+		for (let seed = 1; seed < 200; seed++) {
+			const a = createScenario(random, mulberry32(seed));
+			const twa = Math.abs(((a.h - a.dir + 540) % 360) - 180);
+			const b = createScenario(
+				{ windDir: String(a.dir), startCourse: String(twa), mobMode: 'auto' },
+				mulberry32(seed)
+			);
+			expect(b.dir).toBe(a.dir);
+			expect(b.h).toBeCloseTo(a.h, 9);
+			expect(b.at).toBe(a.at);
+		}
+	});
+
+	it('geeft Infinity als alarmtijd bij zelf starten', () => {
+		expect(createScenario({ ...random, mobMode: 'manual' }, mulberry32(1)).at).toBe(Infinity);
+	});
+});

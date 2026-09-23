@@ -12,15 +12,24 @@ export interface ScenarioOptions {
 
 const RANDOM_TWA = [45, 60, 90, 110, 135, 165];
 
-/** Nieuwe beginsituatie. Alle toeval komt uit rng, dus dezelfde seed geeft dezelfde situatie. */
+/**
+ * Nieuwe beginsituatie. Alle toeval komt uit rng, dus dezelfde seed geeft dezelfde situatie.
+ * Er worden altijd vier getallen getrokken, in vaste volgorde, ook als een waarde vastligt.
+ * Zo geeft een seed dezelfde boeg en hetzelfde alarmmoment, of de wind nu willekeurig
+ * was of (via een gedeelde link) vastligt.
+ */
 export function createScenario(o: ScenarioOptions, rng: Rng): Scenario {
-	const dir = o.windDir === 'random' ? Math.floor(rng() * 16) * 22.5 : +o.windDir;
+	const rDir = rng();
+	const rTwa = rng();
+	const rSide = rng();
+	const rAt = rng();
+	const dir = o.windDir === 'random' ? Math.floor(rDir * 16) * 22.5 : +o.windDir;
 	const twa =
-		o.startCourse === 'random' ? RANDOM_TWA[Math.floor(rng() * RANDOM_TWA.length)] : +o.startCourse;
-	const side = rng() < 0.5 ? 1 : -1;
+		o.startCourse === 'random' ? RANDOM_TWA[Math.floor(rTwa * RANDOM_TWA.length)] : +o.startCourse;
+	const side = rSide < 0.5 ? 1 : -1;
 	return {
 		dir,
 		h: norm360(dir + side * twa),
-		at: o.mobMode === 'auto' ? 6 + rng() * 14 : Infinity
+		at: o.mobMode === 'auto' ? 6 + rAt * 14 : Infinity
 	};
 }

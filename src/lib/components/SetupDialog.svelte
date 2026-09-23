@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { dirName } from '$lib/sim/geometry';
 	import { game } from '$lib/state/game.svelte';
 	import { settings, type Settings } from '$lib/state/settings.svelte';
 	import Dialog from './Dialog.svelte';
@@ -62,6 +63,13 @@
 			Kies de omstandigheden. Zodra de drenkeling te water gaat, loopt de tijd. Je haalt hem op door
 			langzamer dan 1,5 knoop naast hem te komen.
 		</p>
+
+		{#if game.shared}
+			<p class="mt-3 rounded-lg border border-buoy px-3 py-2" role="status">
+				Gedeelde situatie: wind uit {dirName(game.shared.windDir)}, startkoers
+				{game.shared.startCourse}° van de wind. Druk op Start om hem te varen.
+			</p>
+		{/if}
 
 		<Segmented
 			label="Wind uit"
