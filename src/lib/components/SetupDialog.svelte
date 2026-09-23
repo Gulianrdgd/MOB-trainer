@@ -117,16 +117,25 @@
 		>
 			Start
 		</button>
-		<button
-			type="button"
-			class="mt-2 w-full py-1 text-[15px] font-semibold text-muted underline underline-offset-2"
-			onclick={() => {
-				game.newRun(false);
-				game.startTutorial();
-			}}
-		>
-			Start met rondleiding
-		</button>
+		<div class="mt-2 flex justify-center gap-6">
+			<button
+				type="button"
+				class="py-1 text-[15px] font-semibold text-muted underline underline-offset-2"
+				onclick={() => {
+					game.newRun(false);
+					game.startTutorial();
+				}}
+			>
+				Start met rondleiding
+			</button>
+			<button
+				type="button"
+				class="py-1 text-[15px] font-semibold text-muted underline underline-offset-2"
+				onclick={() => (game.overlay = 'history')}
+			>
+				Geschiedenis
+			</button>
+		</div>
 
 		<div
 			class="mt-3 text-[15px] text-muted [&_kbd]:rounded [&_kbd]:border [&_kbd]:border-panel-edge [&_kbd]:px-1 [&_kbd]:font-sans [&_kbd]:font-semibold [&_kbd]:text-ink"

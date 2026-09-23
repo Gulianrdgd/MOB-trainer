@@ -2,6 +2,7 @@
 	import Controls from '$lib/components/Controls.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import Hud from '$lib/components/Hud.svelte';
+	import HistoryDialog from '$lib/components/HistoryDialog.svelte';
 	import PauseDialog from '$lib/components/PauseDialog.svelte';
 	import ResultDialog from '$lib/components/ResultDialog.svelte';
 	import SetupDialog from '$lib/components/SetupDialog.svelte';
@@ -10,12 +11,14 @@
 	import Tutorial from '$lib/components/Tutorial.svelte';
 	import WindCompass from '$lib/components/WindCompass.svelte';
 	import { game } from '$lib/state/game.svelte';
+	import { history } from '$lib/state/history.svelte';
 	import { settings } from '$lib/state/settings.svelte';
 	import { fromSearchParams } from '$lib/share';
 	import { onMount } from 'svelte';
 
 	onMount(() => {
 		settings.load();
+		history.load();
 		const shared = fromSearchParams(new URLSearchParams(location.search));
 		if (shared) game.loadShared(shared);
 	});
@@ -67,6 +70,8 @@
 			<SetupDialog />
 		{:else if game.overlay === 'result' && game.result}
 			<ResultDialog result={game.result} />
+		{:else if game.overlay === 'history'}
+			<HistoryDialog />
 		{:else if game.overlay === 'track'}
 			<button
 				type="button"

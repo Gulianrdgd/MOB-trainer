@@ -17,10 +17,12 @@ import type {
 	Wind,
 	WindStrength
 } from '$lib/sim/types';
+import { attemptFrom } from '$lib/history';
+import { history } from './history.svelte';
 import { settings } from './settings.svelte';
 
 /** Welk venster over het canvas ligt. 'track' = resultaat verborgen om het spoor te bekijken. */
-export type Overlay = 'setup' | 'result' | 'track' | 'none';
+export type Overlay = 'setup' | 'result' | 'track' | 'history' | 'none';
 
 export type HoldKey = keyof Input;
 
@@ -106,7 +108,7 @@ class Game {
 	/** Stap in de rondleiding voor nieuwe gebruikers, null als die niet loopt. */
 	tutorialStep = $state<number | null>(null);
 
-	showPaused = $derived(this.paused && this.overlay !== 'setup' && this.tutorialStep === null);
+	showPaused = $derived(this.paused && this.overlay === 'none' && this.tutorialStep === null);
 
 	/** Situatie uit een gedeelde link; geldt voor de eerstvolgende start. */
 	shared = $state.raw<SharedScenario | null>(null);
@@ -208,6 +210,16 @@ class Game {
 		this.finished = true;
 		this.result = score(this.sim, v.showIdeal, v.method);
 		const s = this.sim;
+		if (this.run)
+			history.add(
+				attemptFrom(s.run, {
+					at: Date.now(),
+					time: this.result.time,
+					method: s.config.method,
+					windDir: s.wind.dir,
+					windStrength: this.run.windStrength
+				})
+			);
 		this.replay = {
 			samples: s.replay,
 			marks: s.marks,
