@@ -1,1 +1,141 @@
 @import 'tailwindcss';
+@import '@fontsource/barlow-semi-condensed/400.css';
+@import '@fontsource/barlow-semi-condensed/500.css';
+@import '@fontsource/barlow-semi-condensed/600.css';
+@import '@fontsource/barlow-semi-condensed/700.css';
+
+/*
+ * Kleurtokens. Het canvas leest deze ruwe variabelen via getComputedStyle,
+ * componenten gebruiken ze via het Tailwind-theme hieronder (bg-sea, text-ink, ...).
+ * Donker volgt prefers-color-scheme, tenzij data-theme op <html> het afdwingt.
+ */
+:root {
+	--sea: #d7e7ea;
+	--sea-line: #bcd3d8;
+	--wave: #9fbcc4;
+	--ink: #16384a;
+	--muted: #56717e;
+	--panel: rgba(246, 250, 250, 0.93);
+	--panel-edge: #b7ccd2;
+	--buoy: #ff5e14;
+	--good: #1f7a4a;
+	--warn: #b36b00;
+	--hull: #fbfbf8;
+	--hull-edge: #16384a;
+	--sail: #ffffff;
+	--track: rgba(22, 56, 74, 0.35);
+	--track-mob: rgba(255, 94, 20, 0.85);
+	--btn: #16384a;
+	--btn-ink: #f4f8f8;
+	--btn-on: #ff5e14;
+	--veil: rgba(215, 231, 234, 0.72);
+	--ideal: #1f7a4a;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--sea: #0f2430;
+		--sea-line: #183544;
+		--wave: #2a5163;
+		--ink: #e2eef1;
+		--muted: #8fa9b4;
+		--panel: rgba(14, 32, 42, 0.92);
+		--panel-edge: #2b4b5a;
+		--hull: #e9eef0;
+		--hull-edge: #07161e;
+		--sail: #f4f7f8;
+		--track: rgba(200, 225, 232, 0.35);
+		--track-mob: rgba(255, 120, 60, 0.9);
+		--btn: #dbe8ec;
+		--btn-ink: #0f2430;
+		--veil: rgba(10, 24, 32, 0.72);
+		--ideal: #5fd08f;
+		color-scheme: dark;
+	}
+}
+
+:root[data-theme='dark'] {
+	--sea: #0f2430;
+	--sea-line: #183544;
+	--wave: #2a5163;
+	--ink: #e2eef1;
+	--muted: #8fa9b4;
+	--panel: rgba(14, 32, 42, 0.92);
+	--panel-edge: #2b4b5a;
+	--hull: #e9eef0;
+	--hull-edge: #07161e;
+	--sail: #f4f7f8;
+	--track: rgba(200, 225, 232, 0.35);
+	--track-mob: rgba(255, 120, 60, 0.9);
+	--btn: #dbe8ec;
+	--btn-ink: #0f2430;
+	--veil: rgba(10, 24, 32, 0.72);
+	--ideal: #5fd08f;
+	color-scheme: dark;
+}
+
+@theme inline {
+	--font-sans: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+	--color-sea: var(--sea);
+	--color-sea-line: var(--sea-line);
+	--color-wave: var(--wave);
+	--color-ink: var(--ink);
+	--color-muted: var(--muted);
+	--color-panel: var(--panel);
+	--color-panel-edge: var(--panel-edge);
+	--color-buoy: var(--buoy);
+	--color-good: var(--good);
+	--color-warn: var(--warn);
+	--color-btn: var(--btn);
+	--color-btn-ink: var(--btn-ink);
+	--color-btn-on: var(--btn-on);
+	--color-veil: var(--veil);
+	--color-ideal: var(--ideal);
+}
+
+/* Apparaten zonder hover (telefoon, tablet). */
+@custom-variant touch (@media (hover: none));
+
+@utility panel {
+	background-color: var(--panel);
+	border: 1px solid var(--panel-edge);
+	border-radius: 10px;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
+}
+
+@layer base {
+	html {
+		box-sizing: border-box;
+		height: 100%;
+		padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+			env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+		scroll-padding-top: env(safe-area-inset-top, 0px);
+		background: var(--sea);
+	}
+	body {
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		background: var(--sea);
+		color: var(--ink);
+		font-family: var(--font-sans);
+		font-size: 16px;
+		line-height: 1.35;
+		-webkit-user-select: none;
+		user-select: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+	b {
+		font-variant-numeric: tabular-nums;
+	}
+	button {
+		cursor: pointer;
+	}
+	button:focus-visible,
+	a:focus-visible {
+		outline: 3px solid var(--buoy);
+		outline-offset: 2px;
+	}
+}
