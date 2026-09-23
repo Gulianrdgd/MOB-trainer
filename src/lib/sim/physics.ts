@@ -166,7 +166,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 		s.track.push({ x: boat.x, y: boat.y });
 		if (s.track.length > 6000) {
 			s.track.splice(1, 1);
-			s.mobIdx = Math.max(0, s.mobIdx - 1);
+			if (s.mobIdx > 0) s.mobIdx--;
 		}
 	}
 
