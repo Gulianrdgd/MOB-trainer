@@ -1,4 +1,14 @@
-import { KN, PICK_R, PICK_V, POLAR, RAD, SPEED_FACTOR, TURN_RATE } from './constants';
+import {
+	BUOY_RANGE,
+	KN,
+	PICK_R,
+	PICK_V,
+	POLAR,
+	RAD,
+	SIGHT_R,
+	SPEED_FACTOR,
+	TURN_RATE
+} from './constants';
 import { angDiff, clamp, norm360 } from './geometry';
 import { idealPath } from './idealPath';
 import type { Boat, Input, Scenario, SimConfig, SimEvent, SimState, TrackMark } from './types';
@@ -60,6 +70,7 @@ export function createSim(scn: Scenario, kn: number, config: SimConfig): SimStat
 		wind: { dir: scn.dir, kn },
 		boat,
 		mob: null,
+		buoy: null,
 		t: 0,
 		mobAt: scn.at,
 		track: [{ x: 0, y: 0 }],
@@ -75,7 +86,9 @@ export function createSim(scn: Scenario, kn: number, config: SimConfig): SimStat
 			inPass: false,
 			approachTh: null,
 			approachFar: false,
-			startTh: 0
+			startTh: 0,
+			buoyAt: null,
+			outOfSight: 0
 		},
 		replay: [],
 		marks: [],
@@ -96,6 +109,19 @@ export function triggerMob(s: SimState): boolean {
 	s.mob = { ...pos, t0: s.t, ideal: idealPath(wind, boat, pos, s.config.method) };
 	s.run.startTh = Math.abs(angDiff(wind.dir, boat.h));
 	sample(s);
+	return true;
+}
+
+/** Reddingsboei gooien, richting de drenkeling. Geeft false als dat nu niet kan. */
+export function throwBuoy(s: SimState): boolean {
+	const { boat, mob } = s;
+	if (!mob || s.buoy || s.finished) return false;
+	const dx = mob.x - boat.x;
+	const dy = mob.y - boat.y;
+	const dist = Math.hypot(dx, dy);
+	const k = dist > 0 ? Math.min(dist, BUOY_RANGE) / dist : 0;
+	s.buoy = { x: boat.x + dx * k, y: boat.y + dy * k };
+	s.run.buoyAt = s.t - mob.t0;
 	return true;
 }
 
@@ -196,8 +222,13 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 		const md = 0.04 * (wind.kn / 12);
 		mob.x += Math.sin(wr) * md * dt;
 		mob.y -= Math.cos(wr) * md * dt;
+		if (s.buoy) {
+			s.buoy.x += Math.sin(wr) * md * dt;
+			s.buoy.y -= Math.cos(wr) * md * dt;
+		}
 		const dist = Math.hypot(mob.x - boat.x, mob.y - boat.y);
 		run.maxDist = Math.max(run.maxDist, dist);
+		if (dist > SIGHT_R) run.outOfSight += dt;
 		if (dist > 8) run.armed = true;
 		if (dist > 18) run.approachFar = true;
 		if (dist < 15 && run.approachFar) {

@@ -19,6 +19,15 @@ export const POLAR: readonly (readonly [number, number])[] = [
 	[180, 0.72]
 ];
 
+/** Verder dan dit (meters) is een drenkeling tussen de golven niet meer te zien. */
+export const SIGHT_R = 60;
+
+/** Binnen zoveel seconden na het alarm hoort de reddingsboei in het water te liggen. */
+export const BUOY_IN_TIME = 5;
+
+/** Zo ver (meters) kun je een reddingsboei gooien. */
+export const BUOY_RANGE = 15;
+
 /** Windsterkte in knopen. */
 export const STRENGTH = { licht: 8, matig: 12, stevig: 18 } as const;
 

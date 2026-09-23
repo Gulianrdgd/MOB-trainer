@@ -3,13 +3,15 @@
 
 	let { hud }: { hud: HudView } = $props();
 
-	const rows = $derived([
-		['Snelheid', hud.speed],
-		['Koers', hud.course],
-		['Windhoek', hud.twa],
-		['Afstand', hud.dist],
-		['Peiling', hud.brg],
-		['Tijd', hud.time]
+	const rows = $derived<[string, string, boolean][]>([
+		['Snelheid', hud.speed, false],
+		['Koers', hud.course, false],
+		['Windhoek', hud.twa, false],
+		['Afstand', hud.dist, false],
+		['Peiling', hud.brg, false],
+		['Tijd', hud.time, false],
+		['Boei', hud.buoy, hud.buoyWarn],
+		['Zicht', hud.sight, hud.sightWarn]
 	]);
 </script>
 
@@ -26,9 +28,9 @@
 	<dl
 		class="mt-1.5 grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-px text-[15px] max-[520px]:text-[14px]"
 	>
-		{#each rows as [label, value] (label)}
+		{#each rows as [label, value, warn] (label)}
 			<dt class="text-muted">{label}</dt>
-			<dd class="text-right font-semibold tabular-nums">{value}</dd>
+			<dd class={['text-right font-semibold tabular-nums', warn && 'text-warn']}>{value}</dd>
 		{/each}
 	</dl>
 	<div class="mt-1.5 text-[15px] font-semibold">{hud.koers}</div>

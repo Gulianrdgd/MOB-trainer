@@ -1,19 +1,8 @@
-<script lang="ts" module>
-	import type { ReplaySample, TrackMark, Vec } from '$lib/sim/types';
-
-	export interface ReplayData {
-		samples: ReplaySample[];
-		marks: TrackMark[];
-		/** Ideaal pad relatief ten opzichte van de drenkeling. */
-		ideal: Vec[];
-		windDir: number;
-	}
-</script>
-
 <script lang="ts">
 	import { fmt, fmtTime } from '$lib/format';
 	import { KN, PICK_V } from '$lib/sim/constants';
 	import { angDiff, courseName, dirName } from '$lib/sim/geometry';
+	import type { ReplayData, TrackMark, Vec } from '$lib/sim/types';
 	import { onDestroy } from 'svelte';
 
 	let { data }: { data: ReplayData } = $props();

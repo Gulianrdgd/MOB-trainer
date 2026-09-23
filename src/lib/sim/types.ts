@@ -56,6 +56,10 @@ export interface RunStats {
 	approachTh: number | null;
 	approachFar: boolean;
 	startTh: number;
+	/** Seconden na het alarm dat de reddingsboei gegooid werd, null als dat niet gebeurde. */
+	buoyAt: number | null;
+	/** Seconden dat de drenkeling verder dan SIGHT_R weg was. */
+	outOfSight: number;
 }
 
 export interface SimConfig {
@@ -90,11 +94,22 @@ export interface TrackMark {
 	type: 'tack' | 'gybe' | 'crash';
 }
 
+/** Alles wat nodig is om een afgeronde run terug te kijken. */
+export interface ReplayData {
+	samples: ReplaySample[];
+	marks: TrackMark[];
+	/** Ideaal pad relatief ten opzichte van de drenkeling. */
+	ideal: Vec[];
+	windDir: number;
+}
+
 export interface SimState {
 	config: SimConfig;
 	wind: Wind;
 	boat: Boat;
 	mob: Mob | null;
+	/** Gegooide reddingsboei; drijft net als de drenkeling met de wind mee. */
+	buoy: Vec | null;
 	t: number;
 	mobAt: number;
 	track: Vec[];

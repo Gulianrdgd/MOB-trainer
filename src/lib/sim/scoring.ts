@@ -1,5 +1,5 @@
 import { fmt } from '../format';
-import { KN, RAD } from './constants';
+import { BUOY_IN_TIME, KN, RAD, SIGHT_R } from './constants';
 import { angDiff, courseName, dirName } from './geometry';
 import type { Method, SimState } from './types';
 
@@ -45,7 +45,9 @@ export function score(s: SimState, showIdeal: 'live' | 'after' | 'off', method: 
 		['Drenkeling', where(s)],
 		['Verste afstand', `${Math.round(run.maxDist)} m`],
 		['Overstag / gijp', `${run.tacks} / ${run.gybes}`],
-		['Te hard gepasseerd', String(run.flybys)]
+		['Te hard gepasseerd', String(run.flybys)],
+		['Reddingsboei', run.buoyAt === null ? 'niet gegooid' : `na ${fmt(run.buoyAt)} s`],
+		['Uit zicht', `${Math.round(run.outOfSight)} s`]
 	];
 
 	const fb: Feedback[] = [];
@@ -63,10 +65,18 @@ export function score(s: SimState, showIdeal: 'live' | 'after' | 'off', method: 
 		);
 	if (run.flybys) warn(`${run.flybys}× te hard langs de drenkeling. Begin eerder met vieren.`);
 	if (run.crash) warn(`${run.crash}× klapgijp. Schoot eerst inhalen, dan gijpen.`);
-	if (run.maxDist > 60)
+	if (run.buoyAt === null)
+		warn('Geen reddingsboei gegooid. Gooi hem direct bij het alarm (toets B).');
+	else if (run.buoyAt > BUOY_IN_TIME)
 		warn(
-			`Je kwam tot ${Math.round(run.maxDist)} m van de drenkeling. Hoe verder weg, hoe groter de kans dat je hem uit het oog verliest.`
+			`Reddingsboei pas na ${fmt(run.buoyAt)} s gegooid. Gooi hem direct: de drenkeling heeft dan iets om vast te houden en de plek is gemarkeerd.`
 		);
+	else good(`Reddingsboei na ${fmt(run.buoyAt)} s gegooid.`);
+	if (run.outOfSight > 0)
+		warn(
+			`Je kwam tot ${Math.round(run.maxDist)} m van de drenkeling en was hem ${Math.round(run.outOfSight)} s uit zicht (verder dan ${SIGHT_R} m). Hoe verder weg, hoe groter de kans dat je hem uit het oog verliest.`
+		);
+	else good('De drenkeling bleef de hele tijd in zicht.');
 	if (!run.flybys && !run.crash && ap >= 40 && ap <= 110 && time < 90) good('Strak uitgevoerd.');
 	if (showIdeal !== 'off')
 		good(

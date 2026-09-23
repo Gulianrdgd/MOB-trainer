@@ -134,6 +134,8 @@
 			<p class="my-1 max-w-[62ch]">
 				<kbd>←</kbd> <kbd>→</kbd> roer. <kbd>↑</kbd> schoot aantrekken, <kbd>↓</kbd> vieren,
 				<kbd>spatie</kbd> alles los (zolang je hem vasthoudt). <kbd>M</kbd> man over boord,
+				<kbd>B</kbd>
+				reddingsboei gooien,
 				<kbd>P</kbd> pauze, <kbd>R</kbd> instellingen. Op een telefoon gebruik je de knoppen onderin.
 			</p>
 			<p class="my-1 max-w-[62ch]">

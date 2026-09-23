@@ -1,15 +1,15 @@
 import { fmt, fmtTime } from '$lib/format';
 import { Renderer } from '$lib/render/canvas';
-import { KN, STRENGTH } from '$lib/sim/constants';
+import { BUOY_IN_TIME, KN, SIGHT_R, STRENGTH } from '$lib/sim/constants';
 import { angDiff, courseName } from '$lib/sim/geometry';
-import { createSim, optBoom, step, triggerMob } from '$lib/sim/physics';
+import { createSim, optBoom, step, throwBuoy, triggerMob } from '$lib/sim/physics';
 import { mulberry32, randomSeed } from '$lib/sim/rng';
 import { createScenario } from '$lib/sim/scenario';
 import { score, type Result } from '$lib/sim/scoring';
 import type { SharedScenario } from '$lib/share';
-import type { ReplayData } from '$lib/components/Replay.svelte';
 import type {
 	Input,
+	ReplayData,
 	Method,
 	Scenario,
 	SimEvent,
@@ -33,6 +33,13 @@ export interface HudView {
 	dist: string;
 	brg: string;
 	time: string;
+	/** Reddingsboei: '-', 'gooi nu (B)', 'gegooid' of 'nog niet'. */
+	buoy: string;
+	/** Drenkeling in zicht: '-', 'in zicht' of 'uit zicht'. */
+	sight: string;
+	/** Waarschuwing tonen bij boei of zicht. */
+	buoyWarn: boolean;
+	sightWarn: boolean;
 	koers: string;
 	/** Posities op de schootbalk in procent. */
 	trimOpt: number;
@@ -49,6 +56,10 @@ const INITIAL_HUD: HudView = {
 	dist: '-',
 	brg: '-',
 	time: '-',
+	buoy: '-',
+	sight: '-',
+	buoyWarn: false,
+	sightWarn: false,
 	koers: '-',
 	trimOpt: 0,
 	trimCur: 0,
@@ -78,6 +89,7 @@ class Game {
 	running = $state(false);
 	finished = $state(false);
 	hasMob = $state(false);
+	hasBuoy = $state(false);
 	/** Vastgehouden schermknoppen. */
 	hold = $state<Input>({ left: false, right: false, in: false, out: false, loose: false });
 	hud = $state<HudView>({ ...INITIAL_HUD });
@@ -233,6 +245,7 @@ class Game {
 		this.result = null;
 		this.replay = null;
 		this.hasMob = false;
+		this.hasBuoy = false;
 		this.finished = false;
 		this.paused = false;
 		this.running = true;
@@ -284,6 +297,14 @@ class Game {
 		if (triggerMob(this.sim)) this.onMob();
 	}
 
+	throwBuoy() {
+		if (!this.running || this.finished || this.paused || !this.hasMob) return;
+		if (throwBuoy(this.sim)) {
+			this.hasBuoy = true;
+			this.showToast('Reddingsboei gegooid');
+		}
+	}
+
 	openSetup() {
 		this.tutorialStep = null;
 		this.paused = true;
@@ -322,10 +343,16 @@ class Game {
 						? 'recht achter'
 						: (Math.abs(ab - 90) < 12 ? 'dwars ' : Math.round(ab) + '° ') + (rb > 0 ? 'SB' : 'BB');
 			h.time = fmtTime(t - mob.t0);
+			const since = t - mob.t0;
+			h.buoy = this.sim.buoy ? 'gegooid' : since <= BUOY_IN_TIME ? 'gooi nu (B)' : 'nog niet';
+			h.buoyWarn = !this.sim.buoy;
+			h.sight = dist > SIGHT_R ? 'uit zicht' : 'in zicht';
+			h.sightWarn = dist > SIGHT_R;
 		} else {
 			h.status = this.runManualMob ? 'Druk op MOB als je klaar bent' : 'Vrij varen, blijf alert';
 			h.alarm = false;
-			h.dist = h.brg = h.time = '-';
+			h.dist = h.brg = h.time = h.buoy = h.sight = '-';
+			h.buoyWarn = h.sightWarn = false;
 		}
 	}
 
@@ -340,6 +367,7 @@ class Game {
 		this.keys[k] = true;
 		if (e.repeat) return;
 		if (k === 'm') this.triggerMob();
+		if (k === 'b') this.throwBuoy();
 		if (k === 'p') this.togglePause();
 		if (k === 'r') this.openSetup();
 	}

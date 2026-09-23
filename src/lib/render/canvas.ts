@@ -229,6 +229,7 @@ export class Renderer {
 			ctx.setLineDash([]);
 			line(s.mobIdx, track.length, C['track-mob'], 2.5);
 		}
+		if (s.buoy) this.drawBuoy(s.buoy);
 		if (s.mob) this.drawMob(s.mob, s.t, o.reducedMotion);
 		this.drawBoat(s);
 		if (s.mob) this.drawOffscreen(s.mob);
@@ -393,6 +394,25 @@ export class Renderer {
 		ctx.beginPath();
 		ctx.arc(sx, sy, r * 0.42, 0, 7);
 		ctx.fill();
+	}
+
+	/** Reddingsboei: oranje-witte ring zonder persoon erin. */
+	private drawBuoy(p: Vec) {
+		const { ctx, C } = this;
+		const [sx, sy] = this.w2s(p.x, p.y);
+		const r = Math.max(0.4 * this.cam.s, 5);
+		ctx.lineWidth = r * 0.5;
+		ctx.strokeStyle = C.buoy;
+		ctx.beginPath();
+		ctx.arc(sx, sy, r, 0, 7);
+		ctx.stroke();
+		ctx.strokeStyle = '#fff';
+		for (let i = 0; i < 4; i++) {
+			const a = (i * Math.PI) / 2;
+			ctx.beginPath();
+			ctx.arc(sx, sy, r, a, a + 0.45);
+			ctx.stroke();
+		}
 	}
 
 	/** Pijl aan de rand van het scherm als de drenkeling buiten beeld is. */

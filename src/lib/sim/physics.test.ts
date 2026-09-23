@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { KN } from './constants';
-import { createSim, optBoom, polar, sail, step, triggerMob } from './physics';
+import { createSim, optBoom, polar, sail, step, throwBuoy, triggerMob } from './physics';
+import { score } from './scoring';
 import { createScenario } from './scenario';
 import { mulberry32 } from './rng';
 import type { Input } from './types';
@@ -167,5 +168,53 @@ describe('terugkijken', () => {
 		const ts = s.replay.map((r) => r.t);
 		expect(ts).toEqual([...ts].sort((a, b) => a - b));
 		expect(s.replay.length).toBeGreaterThan(20);
+	});
+});
+
+describe('examenhandelingen', () => {
+	const none: Input = { left: false, right: false, in: false, out: false, loose: false };
+	const withMob = () => {
+		const s = createSim({ dir: 0, h: 90, at: Infinity }, 12, { autoTrim: true, method: 'mobje' });
+		triggerMob(s);
+		return s;
+	};
+
+	it('gooit de boei richting de drenkeling, hooguit 15 m ver en maar één keer', () => {
+		const s = createSim({ dir: 0, h: 90, at: Infinity }, 12, { autoTrim: true, method: 'mobje' });
+		expect(throwBuoy(s)).toBe(false);
+		triggerMob(s);
+		for (let i = 0; i < 60 * 30; i++) step(s, none, 1 / 60);
+		expect(throwBuoy(s)).toBe(true);
+		expect(throwBuoy(s)).toBe(false);
+		const { boat, buoy, mob } = s;
+		expect(Math.hypot(buoy!.x - boat.x, buoy!.y - boat.y)).toBeCloseTo(15, 6);
+		const toMob = Math.atan2(mob!.x - boat.x, mob!.y - boat.y);
+		expect(Math.atan2(buoy!.x - boat.x, buoy!.y - boat.y)).toBeCloseTo(toMob, 6);
+		expect(s.run.buoyAt).toBeCloseTo(30, 6);
+	});
+
+	it('telt de tijd dat de drenkeling verder dan 60 m weg is', () => {
+		const s = withMob();
+		let far = 0;
+		for (let i = 0; i < 60 * 60; i++) {
+			step(s, none, 1 / 60);
+			if (Math.hypot(s.mob!.x - s.boat.x, s.mob!.y - s.boat.y) > 60) far += 1 / 60;
+		}
+		expect(far).toBeGreaterThan(5);
+		expect(s.run.outOfSight).toBeCloseTo(far, 6);
+	});
+
+	it('geeft feedback op de boei en het zicht', () => {
+		const s = withMob();
+		const texts = () => score(s, 'off', 'mobje').feedback.map((f) => `${f.kind}: ${f.text}`);
+		expect(texts()).toContain(
+			'warn: Geen reddingsboei gegooid. Gooi hem direct bij het alarm (toets B).'
+		);
+		expect(texts()).toContain('good: De drenkeling bleef de hele tijd in zicht.');
+		for (let i = 0; i < 60 * 3; i++) step(s, none, 1 / 60);
+		throwBuoy(s);
+		expect(texts()).toContain('good: Reddingsboei na 3,0 s gegooid.');
+		s.run.buoyAt = 8;
+		expect(texts().some((t) => t.startsWith('warn: Reddingsboei pas na 8,0 s'))).toBe(true);
 	});
 });
