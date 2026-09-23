@@ -99,6 +99,7 @@ export function triggerMob(s: SimState): boolean {
 /** Eén tijdstap. Muteert alleen s en geeft terug wat er gebeurde. */
 export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	const events: SimEvent[] = [];
+	if (s.finished) return events;
 	const { boat, wind, run } = s;
 	s.t += dt;
 
