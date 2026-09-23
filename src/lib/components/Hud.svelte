@@ -14,6 +14,7 @@
 </script>
 
 <div
+	data-tour="hud"
 	class="absolute top-2.5 left-2.5 w-[196px] panel px-3 py-2.5 max-[520px]:w-[168px] max-[520px]:px-2.5 max-[520px]:py-2"
 >
 	<div
@@ -31,7 +32,7 @@
 		{/each}
 	</dl>
 	<div class="mt-1.5 text-[15px] font-semibold">{hud.koers}</div>
-	<div class="mt-2">
+	<div class="mt-2" data-tour="trim">
 		<div class="flex justify-between text-[14px] text-muted">
 			<span>Schoot</span><span class="font-semibold text-warn">{hud.luff}</span>
 		</div>

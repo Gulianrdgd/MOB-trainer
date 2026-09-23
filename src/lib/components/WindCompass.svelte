@@ -5,7 +5,10 @@
 	let { wind }: { wind: Wind | null } = $props();
 </script>
 
-<div class="w-[122px] panel px-2.5 py-2 text-center max-[520px]:w-[100px] max-[520px]:p-1.5">
+<div
+	data-tour="wind"
+	class="w-[122px] panel px-2.5 py-2 text-center max-[520px]:w-[100px] max-[520px]:p-1.5"
+>
 	<svg
 		viewBox="-50 -50 100 100"
 		aria-hidden="true"

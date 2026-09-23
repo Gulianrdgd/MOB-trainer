@@ -54,6 +54,16 @@ const INITIAL_HUD: HudView = {
 	luff: ''
 };
 
+const TUTORIAL_KEY = 'mob-tutorial-done';
+
+function tutorialDone(): boolean {
+	try {
+		return localStorage.getItem(TUTORIAL_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+
 /** Stilliggende boot als achtergrond voor de eerste start. */
 function idleSim(): SimState {
 	const s = createSim({ dir: 225, h: 315, at: Infinity }, 12, { autoTrim: false, method: 'mobje' });
@@ -78,7 +88,10 @@ class Game {
 	runManualMob = $state(false);
 	runAutoTrim = $state(false);
 
-	showPaused = $derived(this.paused && this.overlay !== 'setup');
+	/** Stap in de rondleiding voor nieuwe gebruikers, null als die niet loopt. */
+	tutorialStep = $state<number | null>(null);
+
+	showPaused = $derived(this.paused && this.overlay !== 'setup' && this.tutorialStep === null);
 
 	/** Situatie uit een gedeelde link; geldt voor de eerstvolgende start. */
 	shared = $state.raw<SharedScenario | null>(null);
@@ -214,6 +227,25 @@ class Game {
 		this.running = true;
 		this.overlay = 'none';
 		clearTimeout(this.resultTimer);
+		// direct vullen: bij de rondleiding staat de simulatie meteen stil
+		this.updateHud();
+		if (!tutorialDone()) this.startTutorial();
+	}
+
+	/** Rondleiding tonen; de simulatie staat zolang stil. */
+	startTutorial() {
+		this.tutorialStep = 0;
+		this.paused = true;
+	}
+
+	endTutorial() {
+		this.tutorialStep = null;
+		this.paused = false;
+		try {
+			localStorage.setItem(TUTORIAL_KEY, '1');
+		} catch {
+			// opslag geblokkeerd: de rondleiding komt dan bij de volgende start terug
+		}
 	}
 
 	/** Neemt een gedeelde situatie over in de instellingen; de volgende start gebruikt de seed. */
@@ -236,17 +268,20 @@ class Game {
 	}
 
 	triggerMob() {
+		if (this.tutorialStep !== null) return;
 		if (!this.running || this.finished || this.hasMob || this.paused) return;
 		if (triggerMob(this.sim)) this.onMob();
 	}
 
 	openSetup() {
+		this.tutorialStep = null;
 		this.paused = true;
 		this.overlay = 'setup';
 	}
 
 	togglePause() {
-		if (!this.running || this.finished || this.overlay === 'setup') return;
+		if (!this.running || this.finished || this.overlay === 'setup' || this.tutorialStep !== null)
+			return;
 		this.paused = !this.paused;
 	}
 

@@ -3,7 +3,6 @@
 	import { game } from '$lib/state/game.svelte';
 	import { settings, type Settings } from '$lib/state/settings.svelte';
 	import Dialog from './Dialog.svelte';
-	import Footer from './Footer.svelte';
 	import Segmented, { type Option } from './Segmented.svelte';
 	import { focusOnMount } from './focus';
 
@@ -59,6 +58,11 @@
 <Dialog>
 	{#snippet children(titleId)}
 		<h1 id={titleId} class="mb-1 text-[28px] leading-[1.1] font-bold">Man over boord oefenen</h1>
+		<p class="my-1 max-w-[62ch]">
+			Oefen de man-over-boordmanoeuvre voordat je hem op het water vaart. Je ziet een zeilboot van
+			bovenaf. Op een onverwacht moment gaat er iemand overboord: vaar terug en haal de drenkeling
+			op. Na afloop zie je je spoor naast de ideale koers en krijg je feedback.
+		</p>
 		<p class="my-1 max-w-[62ch] text-muted">
 			Kies de omstandigheden. Zodra de drenkeling te water gaat, loopt de tijd. Je haalt hem op door
 			langzamer dan 1,5 knoop naast hem te komen.
@@ -113,6 +117,16 @@
 		>
 			Start
 		</button>
+		<button
+			type="button"
+			class="mt-2 w-full py-1 text-[15px] font-semibold text-muted underline underline-offset-2"
+			onclick={() => {
+				game.newRun(false);
+				game.startTutorial();
+			}}
+		>
+			Start met rondleiding
+		</button>
 
 		<div
 			class="mt-3 text-[15px] text-muted [&_kbd]:rounded [&_kbd]:border [&_kbd]:border-panel-edge [&_kbd]:px-1 [&_kbd]:font-sans [&_kbd]:font-semibold [&_kbd]:text-ink"
@@ -128,7 +142,5 @@
 				matige of stevige wind, dan krijg je een klapgijp.
 			</p>
 		</div>
-
-		<Footer />
 	{/snippet}
 </Dialog>
