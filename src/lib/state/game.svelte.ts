@@ -7,6 +7,7 @@ import { mulberry32, randomSeed } from '$lib/sim/rng';
 import { createScenario } from '$lib/sim/scenario';
 import { score, type Result } from '$lib/sim/scoring';
 import type { SharedScenario } from '$lib/share';
+import type { ReplayData } from '$lib/components/Replay.svelte';
 import type {
 	Input,
 	Method,
@@ -82,6 +83,8 @@ class Game {
 	hud = $state<HudView>({ ...INITIAL_HUD });
 	toast = $state({ msg: '', alarm: false, show: false });
 	result = $state.raw<Result | null>(null);
+	/** Gegevens om de afgelopen run terug te kijken. */
+	replay = $state.raw<ReplayData | null>(null);
 	/** Wind van de huidige run, voor het windkompas. Null voor de eerste start. */
 	wind = $state.raw<Wind | null>(null);
 	/** Instellingen waarmee de huidige run gestart is. */
@@ -192,6 +195,13 @@ class Game {
 		const v = settings.values;
 		this.finished = true;
 		this.result = score(this.sim, v.showIdeal, v.method);
+		const s = this.sim;
+		this.replay = {
+			samples: s.replay,
+			marks: s.marks,
+			ideal: s.mob!.ideal.pts,
+			windDir: s.wind.dir
+		};
 		clearTimeout(this.resultTimer);
 		this.resultTimer = setTimeout(() => {
 			if (this.finished) this.overlay = 'result';
@@ -221,6 +231,7 @@ class Game {
 		this.runManualMob = v.mobMode === 'manual';
 		this.runAutoTrim = v.autoTrim === 'true';
 		this.result = null;
+		this.replay = null;
 		this.hasMob = false;
 		this.finished = false;
 		this.paused = false;

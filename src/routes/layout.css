@@ -30,6 +30,8 @@
 	--btn-on: #ff5e14;
 	--veil: rgba(215, 231, 234, 0.72);
 	--ideal: #1f7a4a;
+	--chart-own: #d44a0b;
+	--chart-ideal: #1f7a4a;
 	color-scheme: light;
 }
 
@@ -51,6 +53,8 @@
 		--btn-ink: #0f2430;
 		--veil: rgba(10, 24, 32, 0.72);
 		--ideal: #5fd08f;
+		--chart-own: #e0622c;
+		--chart-ideal: #38ad6b;
 		color-scheme: dark;
 	}
 }
@@ -72,6 +76,8 @@
 	--btn-ink: #0f2430;
 	--veil: rgba(10, 24, 32, 0.72);
 	--ideal: #5fd08f;
+	--chart-own: #e0622c;
+	--chart-ideal: #38ad6b;
 	color-scheme: dark;
 }
 
@@ -92,6 +98,8 @@
 	--color-btn-on: var(--btn-on);
 	--color-veil: var(--veil);
 	--color-ideal: var(--ideal);
+	--color-chart-own: var(--chart-own);
+	--color-chart-ideal: var(--chart-ideal);
 }
 
 /* Apparaten zonder hover (telefoon, tablet). */

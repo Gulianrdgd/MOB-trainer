@@ -71,6 +71,25 @@ export interface Scenario {
 	at: number;
 }
 
+/** Moment op het spoor na het alarm, voor terugkijken. */
+export interface ReplaySample {
+	t: number;
+	x: number;
+	y: number;
+	h: number;
+	v: number;
+	/** Positie van de drenkeling, die langzaam met de wind meedrijft. */
+	mx: number;
+	my: number;
+}
+
+export interface TrackMark {
+	t: number;
+	x: number;
+	y: number;
+	type: 'tack' | 'gybe' | 'crash';
+}
+
 export interface SimState {
 	config: SimConfig;
 	wind: Wind;
@@ -83,6 +102,10 @@ export interface SimState {
 	mobIdx: number;
 	trackTimer: number;
 	run: RunStats;
+	/** Monsters vanaf het alarm, elke 0,2 s en bij oppakken. */
+	replay: ReplaySample[];
+	/** Overstag- en gijpmomenten. */
+	marks: TrackMark[];
 	prevTh: number;
 	prevSide: number;
 	finished: boolean;

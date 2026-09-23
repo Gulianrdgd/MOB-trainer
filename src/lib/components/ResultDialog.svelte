@@ -3,6 +3,7 @@
 	import type { Result } from '$lib/sim/scoring';
 	import { game } from '$lib/state/game.svelte';
 	import Dialog from './Dialog.svelte';
+	import Replay from './Replay.svelte';
 	import ShareButton from './ShareButton.svelte';
 	import { focusOnMount } from './focus';
 
@@ -34,6 +35,9 @@
 				{fb.text}
 			</p>
 		{/each}
+		{#if game.replay && game.replay.samples.length > 1}
+			<Replay data={game.replay} />
+		{/if}
 		<div class="mt-3.5 flex flex-wrap gap-2">
 			<button
 				type="button"

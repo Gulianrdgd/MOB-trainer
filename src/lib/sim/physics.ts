@@ -1,7 +1,7 @@
 import { KN, PICK_R, PICK_V, POLAR, RAD, SPEED_FACTOR, TURN_RATE } from './constants';
 import { angDiff, clamp, norm360 } from './geometry';
 import { idealPath } from './idealPath';
-import type { Boat, Input, Scenario, SimConfig, SimEvent, SimState } from './types';
+import type { Boat, Input, Scenario, SimConfig, SimEvent, SimState, TrackMark } from './types';
 
 /** Snelheidsfractie bij windhoek th, lineair geïnterpoleerd uit de polar. */
 export function polar(th: number): number {
@@ -77,6 +77,8 @@ export function createSim(scn: Scenario, kn: number, config: SimConfig): SimStat
 			approachFar: false,
 			startTh: 0
 		},
+		replay: [],
+		marks: [],
 		prevTh: Math.abs(angDiff(scn.dir, scn.h)),
 		prevSide: angDiff(scn.dir, scn.h) >= 0 ? 1 : -1,
 		finished: false
@@ -93,7 +95,18 @@ export function triggerMob(s: SimState): boolean {
 	s.track.push({ x: boat.x, y: boat.y });
 	s.mob = { ...pos, t0: s.t, ideal: idealPath(wind, boat, pos, s.config.method) };
 	s.run.startTh = Math.abs(angDiff(wind.dir, boat.h));
+	sample(s);
 	return true;
+}
+
+function sample(s: SimState) {
+	const { boat, mob } = s;
+	if (mob)
+		s.replay.push({ t: s.t, x: boat.x, y: boat.y, h: boat.h, v: boat.v, mx: mob.x, my: mob.y });
+}
+
+function mark(s: SimState, type: TrackMark['type']) {
+	s.marks.push({ t: s.t, x: s.boat.x, y: s.boat.y, type });
 }
 
 /** Eén tijdstap. Muteert alleen s en geeft terug wat er gebeurde. */
@@ -141,14 +154,19 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	if (side2 !== s.prevSide) {
 		if (s.prevTh < 90) {
 			run.tacks++;
+			mark(s, 'tack');
 			events.push({ type: 'tack' });
 		} else {
 			run.gybes++;
 			if (!s.config.autoTrim && boat.boom > 55 && wind.kn >= 12) {
 				run.crash++;
 				boat.v *= 0.55;
+				mark(s, 'crash');
 				events.push({ type: 'crash' });
-			} else events.push({ type: 'gybe' });
+			} else {
+				mark(s, 'gybe');
+				events.push({ type: 'gybe' });
+			}
 		}
 	}
 	s.prevSide = side2;
@@ -164,6 +182,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 	if (s.trackTimer > 0.2) {
 		s.trackTimer = 0;
 		s.track.push({ x: boat.x, y: boat.y });
+		sample(s);
 		if (s.track.length > 6000) {
 			s.track.splice(1, 1);
 			if (s.mobIdx > 0) s.mobIdx--;
@@ -189,6 +208,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 		if (run.armed && dist < PICK_R) {
 			if (boat.v < PICK_V) {
 				s.finished = true;
+				sample(s);
 				events.push({ type: 'finish' });
 			} else if (!run.inPass) {
 				run.inPass = true;

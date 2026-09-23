@@ -153,3 +153,19 @@ describe('createScenario', () => {
 		expect(createScenario({ ...random, mobMode: 'manual' }, mulberry32(1)).at).toBe(Infinity);
 	});
 });
+
+describe('terugkijken', () => {
+	it('legt monsters vast vanaf het alarm en markeert overstag en gijp', () => {
+		const s = createSim({ dir: 0, h: 90, at: 1 }, 12, { autoTrim: true, method: 'mobje' });
+		const none: Input = { left: false, right: false, in: false, out: false, loose: false };
+		for (let i = 0; i < 60; i++) step(s, none, 1 / 60);
+		expect(s.replay[0].t).toBeCloseTo(s.mob!.t0, 9);
+		// hard naar links tot overstag, dan door naar een gijp
+		for (let i = 0; i < 60 * 30 && s.marks.length < 2; i++)
+			step(s, { ...none, left: true }, 1 / 60);
+		expect(s.marks.map((m) => m.type)).toEqual(['tack', 'gybe']);
+		const ts = s.replay.map((r) => r.t);
+		expect(ts).toEqual([...ts].sort((a, b) => a - b));
+		expect(s.replay.length).toBeGreaterThan(20);
+	});
+});
