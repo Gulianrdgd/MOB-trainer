@@ -20,6 +20,7 @@ export function currentHint(tr: HintTracker, s: SimState): string | null {
 	while (tr.idx < pts.length - 1 && (d(tr.idx) < 3 || d(tr.idx + 1) < d(tr.idx))) tr.idx++;
 
 	const dist = Math.hypot(mob.x - boat.x, mob.y - boat.y);
+	if (s.run.hold > 0) return 'Vasthouden en binnenhalen';
 	if (s.run.armed && dist < Math.max(6, boat.v * 5)) return 'Alles los (spatie)';
 	if (d(tr.idx) > OFF_PATH) return 'Terug naar de groene lijn';
 	let hint = phases[0].hint;

@@ -70,6 +70,8 @@ export interface RunStats {
 	buoyAt: number | null;
 	/** Seconden dat de drenkeling verder dan SIGHT_R weg was. */
 	outOfSight: number;
+	/** Seconden dat je nu al binnen bereik en langzaam genoeg bent (vasthouden). */
+	hold: number;
 }
 
 export interface SimConfig {

@@ -25,9 +25,10 @@ function run(method: Method, strength: WindStrength, course: number, seed: numbe
 	return s;
 }
 
-// De eis voor MOB-je (minstens 50%) geldt over alle runs samen. Met het afremmen van het
-// prototype (0,3) bleef de autopiloot bij lichte wind net buiten de oppakstraal; met de
-// huidige DECEL haalt hij ze allemaal, maar de eis blijft zoals hij was.
+// De eis voor MOB-je (minstens 50%) geldt over alle runs samen, niet per combinatie. Bij lichte
+// wind komt de autopiloot met het MOB-je net buiten de oppakstraal van 3 m tot stilstand: zijn
+// regel om vanaf 6 m volledig te vieren is daar te vroeg. Bij matige en stevige wind haalt hij
+// ze allemaal.
 describe.each<Method>(['halvewind', 'mobje'])('autopiloot op het ideale pad: %s', (method) => {
 	let picked = 0;
 	let total = 0;

@@ -249,3 +249,52 @@ describe('kant van de drenkeling bij oppakken', () => {
 		expect(r.stats).toContainEqual(['Drenkeling', 'stuurboord, lijzijde']);
 	});
 });
+
+describe('oppakken', () => {
+	const none: Input = { left: false, right: false, in: false, out: false, loose: false };
+	/** Boot stil naast de drenkeling op afstand d, na het alarm en 'gewapend'. */
+	const beside = (d: number, prototype = false) => {
+		const s = createSim({ dir: 0, h: 90, at: Infinity }, 12, {
+			autoTrim: true,
+			method: 'mobje',
+			prototype
+		});
+		triggerMob(s);
+		s.run.armed = true;
+		Object.assign(s.boat, { v: 0, boom: 90 });
+		Object.assign(s.mob!, { x: s.boat.x, y: s.boat.y - d });
+		return s;
+	};
+	const loose: Input = { ...none, loose: true };
+
+	it('pakt pas op na 2 seconden binnen 3 m en langzaam', () => {
+		const s = beside(2);
+		for (let i = 0; i < 60 * 1.9; i++) step(s, loose, 1 / 60);
+		expect(s.finished).toBe(false);
+		expect(s.run.hold).toBeGreaterThan(1.8);
+		for (let i = 0; i < 12; i++) step(s, loose, 1 / 60);
+		expect(s.finished).toBe(true);
+	});
+
+	it('pakt niet op buiten 3 m', () => {
+		const s = beside(3.5);
+		for (let i = 0; i < 60 * 5; i++) step(s, loose, 1 / 60);
+		expect(s.finished).toBe(false);
+		expect(s.run.hold).toBe(0);
+	});
+
+	it('begint opnieuw met tellen als je te hard gaat', () => {
+		const s = beside(2);
+		for (let i = 0; i < 60; i++) step(s, loose, 1 / 60);
+		s.boat.v = 1;
+		step(s, loose, 1 / 60);
+		expect(s.run.hold).toBe(0);
+		expect(s.run.flybys).toBe(1);
+	});
+
+	it('pakt in het prototype direct op binnen 4,5 m', () => {
+		const s = beside(4, true);
+		step(s, loose, 1 / 60);
+		expect(s.finished).toBe(true);
+	});
+});

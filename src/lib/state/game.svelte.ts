@@ -1,6 +1,6 @@
 import { fmt, fmtTime } from '$lib/format';
 import { Renderer } from '$lib/render/canvas';
-import { BUOY_IN_TIME, KN, SIGHT_R, STRENGTH } from '$lib/sim/constants';
+import { BUOY_IN_TIME, KN, PICK_HOLD, SIGHT_R, STRENGTH } from '$lib/sim/constants';
 import { angDiff, courseName } from '$lib/sim/geometry';
 import { createSim, localWind, optBoom, step, throwBuoy, triggerMob } from '$lib/sim/physics';
 import { mulberry32, randomSeed } from '$lib/sim/rng';
@@ -374,8 +374,13 @@ class Game {
 		h.luff = th < 28 ? 'staat in de wind' : boat.luff > 0.35 ? 'klappert' : '';
 		if (mob) {
 			const dist = Math.hypot(mob.x - boat.x, mob.y - boat.y);
-			h.status = this.finished ? 'Aan boord' : 'Man over boord!';
-			h.alarm = !this.finished;
+			const hold = this.sim.run.hold;
+			h.status = this.finished
+				? 'Aan boord'
+				: hold > 0
+					? `Vasthouden, nog ${fmt(Math.max(0, PICK_HOLD - hold))} s`
+					: 'Man over boord!';
+			h.alarm = !this.finished && hold === 0;
 			h.dist = Math.round(dist) + ' m';
 			const rb = angDiff(Math.atan2(mob.x - boat.x, -(mob.y - boat.y)) / (Math.PI / 180), boat.h);
 			const ab = Math.abs(rb);

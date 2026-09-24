@@ -2,9 +2,14 @@
 export const KN = 0.514444;
 export const RAD = Math.PI / 180;
 
-/** Oppakken: langzamer dan 1,5 kn binnen 4,5 m van de drenkeling. */
+/**
+ * Oppakken: binnen PICK_R van de drenkeling, langzamer dan PICK_V, en dat PICK_HOLD seconden
+ * volhouden (vastpakken en binnenhalen). Het prototype pakte direct op binnen 4,5 m.
+ */
 export const PICK_V = 1.5 * KN;
-export const PICK_R = 4.5;
+export const PICK_R = 3;
+export const PICK_HOLD = 2;
+export const PROTOTYPE_PICK_R = 4.5;
 
 /** Snelheidspolar: [windhoek in graden, fractie van de maximale snelheid]. */
 export const POLAR: readonly (readonly [number, number])[] = [
@@ -46,7 +51,7 @@ export const PROTOTYPE_DECEL = 0.3;
  * Het ideale pad eindigt zoveel meter dwars naar lij van de drenkeling, zodat hij bij het
  * oppakken aan loefzijde ligt (bij de want). Het prototype eindigde op de drenkeling zelf.
  */
-export const PICKUP_OFFSET = 2.5;
+export const PICKUP_OFFSET = 2;
 
 /** Optrekken: fractie van het snelheidsverschil per seconde. */
 export const ACCEL = 0.35;

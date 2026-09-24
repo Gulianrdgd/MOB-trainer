@@ -5,8 +5,10 @@ import {
 	PICKUP_OFFSET,
 	PROTOTYPE_DECEL,
 	KN,
+	PICK_HOLD,
 	PICK_R,
 	PICK_V,
+	PROTOTYPE_PICK_R,
 	POLAR,
 	RAD,
 	SIGHT_R,
@@ -105,7 +107,8 @@ export function createSim(scn: Scenario, kn: number, config: SimConfig): SimStat
 			approachFar: false,
 			startTh: 0,
 			buoyAt: null,
-			outOfSight: 0
+			outOfSight: 0,
+			hold: 0
 		},
 		replay: [],
 		marks: [],
@@ -265,12 +268,18 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 			run.approachFar = false;
 		}
 		if (dist > 9) run.inPass = false;
-		if (run.armed && dist < PICK_R) {
-			if (boat.v < PICK_V) {
+		const reach = s.config.prototype ? PROTOTYPE_PICK_R : PICK_R;
+		if (run.armed && dist < reach && boat.v < PICK_V) {
+			// vasthouden: pas aan boord als je het PICK_HOLD seconden volhoudt
+			run.hold += dt;
+			if (run.hold >= (s.config.prototype ? 0 : PICK_HOLD)) {
 				s.finished = true;
 				sample(s);
 				events.push({ type: 'finish' });
-			} else if (!run.inPass) {
+			}
+		} else {
+			run.hold = 0;
+			if (run.armed && dist < reach && !run.inPass) {
 				run.inPass = true;
 				run.flybys++;
 				events.push({ type: 'flyby', speed: boat.v / KN });

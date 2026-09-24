@@ -68,8 +68,8 @@
 		<h1 id={titleId} class="text-[28px] leading-[1.1] font-bold">Man over boord oefenen</h1>
 		<p class="mt-1.5 max-w-[62ch]">
 			Oefen de man-over-boordmanoeuvre voordat je hem op het water vaart. Op een onverwacht moment
-			gaat er iemand overboord: vaar terug en kom langzamer dan 1,5 knoop naast de drenkeling. Na
-			afloop zie je je spoor naast de ideale koers.
+			gaat er iemand overboord: vaar terug, kom langzamer dan 1,5 knoop binnen 3 m naast de
+			drenkeling en houd dat 2 seconden vol. Na afloop zie je je spoor naast de ideale koers.
 		</p>
 
 		<div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto]">
