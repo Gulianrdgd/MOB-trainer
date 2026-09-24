@@ -1,6 +1,7 @@
 import { fmt } from '../format';
 import { BUOY_IN_TIME, KN, RAD, SIGHT_R } from './constants';
 import { angDiff, courseName, dirName } from './geometry';
+import { localWind } from './physics';
 import type { Method, SimState } from './types';
 
 export interface Feedback {
@@ -11,22 +12,33 @@ export interface Feedback {
 export interface Result {
 	/** Seconden tussen alarm en oppakken. */
 	time: number;
+	side: PickupSide;
 	stats: [label: string, value: string][];
 	feedback: Feedback[];
 }
 
-/** Waar ligt de drenkeling ten opzichte van de boot bij het oppakken. */
-function where(s: SimState): string {
-	const { boat, wind } = s;
+/** Kant waar de drenkeling ligt bij het oppakken. Goed is loefzijde: de boot drijft van hem af. */
+export type PickupSide = 'loef' | 'lij' | 'boeg' | 'spiegel';
+
+export function pickupSide(s: SimState): { side: PickupSide; starboard: boolean } {
+	const { boat } = s;
 	const mob = s.mob!;
-	const d = angDiff(wind.dir, boat.h);
+	const d = angDiff(localWind(s).dir, boat.h);
 	const brg = Math.atan2(mob.x - boat.x, -(mob.y - boat.y)) / RAD;
 	const rel = angDiff(brg, boat.h);
-	if (Math.abs(rel) < 25) return 'recht voor de boeg';
-	if (Math.abs(rel) > 155) return 'achter de spiegel';
-	const sb = rel > 0;
-	const loef = (sb && d >= 0) || (!sb && d < 0);
-	return `${sb ? 'stuurboord' : 'bakboord'}, ${loef ? 'loefzijde' : 'lijzijde'}`;
+	const starboard = rel > 0;
+	if (Math.abs(rel) < 25) return { side: 'boeg', starboard };
+	if (Math.abs(rel) > 155) return { side: 'spiegel', starboard };
+	const loef = (starboard && d >= 0) || (!starboard && d < 0);
+	return { side: loef ? 'loef' : 'lij', starboard };
+}
+
+/** Waar ligt de drenkeling ten opzichte van de boot bij het oppakken, in woorden. */
+function where(s: SimState): string {
+	const { side, starboard } = pickupSide(s);
+	if (side === 'boeg') return 'recht voor de boeg';
+	if (side === 'spiegel') return 'achter de spiegel';
+	return `${starboard ? 'stuurboord' : 'bakboord'}, ${side === 'loef' ? 'loefzijde' : 'lijzijde'}`;
 }
 
 /** Resultaat en feedback van een afgeronde run. */
@@ -63,6 +75,20 @@ export function score(s: SimState, showIdeal: 'live' | 'after' | 'off', method: 
 		warn(
 			'Je schoot op in de wind. Dat kan, maar je hebt weinig controle als je de afstand verkeerd inschat.'
 		);
+	const { side } = pickupSide(s);
+	if (side === 'loef') good('Drenkeling aan loefzijde opgepakt: de boot drijft van hem af.');
+	else if (side === 'lij')
+		warn(
+			'Drenkeling aan lijzijde opgepakt. De boot drijft dan over hem heen. Kom zo aan dat hij aan loefzijde ligt, bij de want.'
+		);
+	else if (side === 'boeg')
+		warn(
+			'Drenkeling recht voor de boeg: je kunt hem raken. Kom zo aan dat hij aan loefzijde ligt, bij de want.'
+		);
+	else
+		warn(
+			'Drenkeling achter de spiegel: je lag niet naast hem. Kom zo aan dat hij aan loefzijde ligt, bij de want.'
+		);
 	if (run.flybys) warn(`${run.flybys}× te hard langs de drenkeling. Begin eerder met vieren.`);
 	if (run.crash) warn(`${run.crash}× klapgijp. Schoot eerst inhalen, dan gijpen.`);
 	if (run.buoyAt === null)
@@ -83,5 +109,5 @@ export function score(s: SimState, showIdeal: 'live' | 'after' | 'off', method: 
 			`Groene stippellijn: ideale koers volgens ${method === 'halvewind' ? 'de halve-windmethode' : 'het MOB-je'}. Oranje: jouw spoor. Bekijk ze samen via "Bekijk je spoor".`
 		);
 
-	return { time, stats, feedback: fb };
+	return { time, side, stats, feedback: fb };
 }

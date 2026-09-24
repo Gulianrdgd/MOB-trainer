@@ -1,5 +1,6 @@
 import { BUOY_IN_TIME } from './sim/constants';
 import { courseName } from './sim/geometry';
+import type { PickupSide } from './sim/scoring';
 import type { Method, RunStats, WindStrength } from './sim/types';
 
 /** Eén geslaagde poging, zoals die in localStorage staat. */
@@ -18,13 +19,22 @@ export interface Attempt {
 	/** Seconden na het alarm, null als de boei niet gegooid is. */
 	buoyAt: number | null;
 	outOfSight: number;
+	/** Kant van de drenkeling bij het oppakken; ontbreekt bij oudere pogingen. */
+	side?: PickupSide;
 }
 
 export const MAX_ATTEMPTS = 50;
 
 export function attemptFrom(
 	run: RunStats,
-	o: { at: number; time: number; method: Method; windDir: number; windStrength: WindStrength }
+	o: {
+		at: number;
+		time: number;
+		method: Method;
+		windDir: number;
+		windStrength: WindStrength;
+		side: PickupSide;
+	}
 ): Attempt {
 	return {
 		...o,
@@ -47,6 +57,7 @@ export function mistakes(a: Attempt): string[] {
 	if (a.buoyAt === null) out.push('geen boei');
 	else if (a.buoyAt > BUOY_IN_TIME) out.push('boei te laat');
 	if (a.outOfSight > 0) out.push('uit zicht');
+	if (a.side && a.side !== 'loef') out.push('verkeerde kant');
 	return out;
 }
 
@@ -98,6 +109,7 @@ export function parseAttempts(raw: unknown): Attempt[] {
 				num(a.crash) &&
 				num(a.outOfSight) &&
 				(a.buoyAt === null || num(a.buoyAt)) &&
+				(a.side === undefined || ['loef', 'lij', 'boeg', 'spiegel'].includes(a.side)) &&
 				(a.method === 'mobje' || a.method === 'halvewind') &&
 				['licht', 'matig', 'stevig'].includes(a.windStrength)
 		)

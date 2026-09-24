@@ -227,7 +227,8 @@ class Game {
 					time: this.result.time,
 					method: s.config.method,
 					windDir: s.wind.dir,
-					windStrength: this.run.windStrength
+					windStrength: this.run.windStrength,
+					side: this.result.side
 				})
 			);
 		this.replay = {

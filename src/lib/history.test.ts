@@ -40,6 +40,8 @@ describe('geschiedenis', () => {
 			'uit zicht'
 		]);
 		expect(mistakes(attempt({ buoyAt: 9 }))).toEqual(['boei te laat']);
+		expect(mistakes(attempt({ side: 'lij' }))).toEqual(['verkeerde kant']);
+		expect(mistakes(attempt({ side: 'loef' }))).toEqual([]);
 	});
 
 	it('vindt de beste tijd per windkracht en de zwakste startkoers', () => {

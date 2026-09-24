@@ -37,7 +37,7 @@ describe('leerstand', () => {
 					'Nu afvallen tot bijna voor de wind',
 					'Oploeven naar aan de wind, schoot aantrekken',
 					'Drenkeling dwars: overstag',
-					'Killend bij: vieren om vaart te minderen',
+					'Killend bij, drenkeling aan loef: vieren om vaart te minderen',
 					'Alles los (spatie)'
 				],
 				seen

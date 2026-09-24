@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { KN } from './constants';
 import { createSim, optBoom, polar, sail, step, throwBuoy, triggerMob } from './physics';
-import { score } from './scoring';
+import { pickupSide, score } from './scoring';
 import { createScenario } from './scenario';
 import { mulberry32 } from './rng';
 import type { Input } from './types';
@@ -216,5 +216,36 @@ describe('examenhandelingen', () => {
 		expect(texts()).toContain('good: Reddingsboei na 3,0 s gegooid.');
 		s.run.buoyAt = 8;
 		expect(texts().some((t) => t.startsWith('warn: Reddingsboei pas na 8,0 s'))).toBe(true);
+	});
+});
+
+describe('kant van de drenkeling bij oppakken', () => {
+	// wind uit het noorden, boot vaart naar het oosten: loef is de noordkant (bakboord)
+	const at = (x: number, y: number) => {
+		const s = createSim({ dir: 0, h: 90, at: Infinity }, 12, { autoTrim: true, method: 'mobje' });
+		triggerMob(s);
+		Object.assign(s.mob!, { x, y });
+		return pickupSide(s);
+	};
+
+	it.each([
+		['loef', 0, -3, false],
+		['lij', 0, 3, true],
+		['boeg', 3, 0, false],
+		['spiegel', -3, 0, false]
+	] as const)('%s', (side, x, y, starboard) => {
+		expect(at(x, y)).toEqual({ side, starboard });
+	});
+
+	it('geeft feedback op de kant', () => {
+		const s = createSim({ dir: 0, h: 90, at: Infinity }, 12, { autoTrim: true, method: 'mobje' });
+		triggerMob(s);
+		Object.assign(s.mob!, { x: 0, y: 3 });
+		const r = score(s, 'off', 'mobje');
+		expect(r.side).toBe('lij');
+		expect(
+			r.feedback.some((f) => f.kind === 'warn' && f.text.startsWith('Drenkeling aan lijzijde'))
+		).toBe(true);
+		expect(r.stats).toContainEqual(['Drenkeling', 'stuurboord, lijzijde']);
 	});
 });

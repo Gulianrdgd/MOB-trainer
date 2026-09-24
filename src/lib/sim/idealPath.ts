@@ -1,4 +1,4 @@
-import { KN, RAD, SPEED_FACTOR, TURN_RATE } from './constants';
+import { KN, PICKUP_OFFSET, RAD, SPEED_FACTOR, TURN_RATE } from './constants';
 import { angDiff, clamp } from './geometry';
 import { polar } from './physics';
 import type { Boat, IdealPath, Method, Vec, Wind } from './types';
@@ -102,8 +102,19 @@ export function spline(pts: Vec[], n = 14): Vec[] {
 /** Eerste hint na het alarm. */
 export const REACT = 'Reddingsboei gooien (B) en naar de drenkeling blijven wijzen';
 
-/** Ideaal pad vanaf de boot naar de drenkeling op positie mob, relatief ten opzichte van mob. */
-export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): IdealPath {
+/**
+ * Ideaal pad vanaf de boot naar de drenkeling op positie mob, relatief ten opzichte van mob.
+ * Het pad eindigt `offset` meter dwars naar lij van de drenkeling, zodat hij bij het stilliggen
+ * aan loefzijde ligt en de boot van hem af drijft. Met offset 0 eindigt het op de drenkeling,
+ * zoals in het prototype.
+ */
+export function idealPath(
+	wind: Wind,
+	boat: Boat,
+	mob: Vec,
+	method: Method,
+	offset = PICKUP_OFFSET
+): IdealPath {
 	const W = wind.dir * RAD;
 	const u = { x: Math.sin(W), y: -Math.cos(W) };
 	const v = { x: Math.cos(W), y: Math.sin(W) };
@@ -125,15 +136,17 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 		const L = 16;
 		const s60 = Math.sin(60 * RAD);
 		const c60 = Math.cos(60 * RAD);
+		// eindaanloop op 60 graden van de wind; eindpunt E dwars naar lij van de drenkeling
+		const E = offset ? { a: -offset * c60, b: -offset * s60 } : { a: 0, b: 0 };
 		const rest: AB[] = [
 			B.mark(),
 			{ a: Math.max(D * 0.35, B.a + 3), b: -1 },
 			{ a: D, b: -1.5 },
 			{ a: D + 5, b: 4 },
 			{ a: D - 6, b: 5 },
-			{ a: L * s60, b: -L * c60 },
-			{ a: L * s60 * 0.3, b: -L * c60 * 0.3 },
-			{ a: 0, b: 0 }
+			{ a: L * s60 + E.a, b: -L * c60 + E.b },
+			{ a: L * s60 * 0.3 + E.a, b: -L * c60 * 0.3 + E.b },
+			E
 		];
 		const sp = spline(
 			rest.map((p) => ({ x: p.a, y: p.b })),
@@ -155,7 +168,7 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 				{ from: seg(2) + 12, hint: 'Overstag' },
 				{ from: seg(4), hint: 'Halve wind terug, drenkeling voor je' },
 				{ from: seg(5), hint: 'Oploeven en vieren om af te remmen' },
-				{ from: seg(6), hint: 'Killend bij: vieren' }
+				{ from: seg(6), hint: 'Killend bij, drenkeling aan loef: vieren' }
 			]
 		};
 	}
@@ -167,6 +180,10 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 	const Lt = 20;
 	const rTack = 2.5;
 	const H = (ph: number): AB => ({ a: Math.sin(ph * RAD), b: Math.cos(ph * RAD) });
+	// eindaanloop aan de wind op -CLOSE; eindpunt E dwars naar lij van de drenkeling
+	const E = offset
+		? { a: -offset * Math.sin(CLOSE * RAD), b: -offset * Math.cos(CLOSE * RAD) }
+		: { a: 0, b: 0 };
 	// verplaatsing tijdens overstag
 	const tk = new Builder(0, 0, CLOSE).arc(-CLOSE, rTack);
 	const dA = tk.a;
@@ -183,8 +200,8 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 		B.arc(CLOSE, turnRadius(legSpeed(110, wind.kn)));
 		const luffEnd = B.mark();
 		const iClose = B.pts.length - 1;
-		const qa = -B.a - dA;
-		const qb = -B.b - dB;
+		const qa = E.a - B.a - dA;
+		const qb = E.b - B.b - dB;
 		const h1 = H(CLOSE);
 		const h2 = H(-CLOSE);
 		return {
@@ -225,7 +242,7 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 	B.arc(-CLOSE, rTack);
 	const appStart = B.mark();
 	const iApp = B.pts.length - 1;
-	B.straight(Math.hypot(B.a, B.b));
+	B.straight(Math.hypot(E.a - B.a, E.b - B.b));
 	const mid = (p: AB, q: AB): AB => ({ a: (p.a + q.a) / 2, b: (p.b + q.b) / 2 });
 	return {
 		pts: B.pts.map(toW),
@@ -233,7 +250,7 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 			{ p: toW(mid(P.runStart, P.runEnd)), text: 'voor de wind' },
 			{ p: toW(P.luffEnd), text: 'oploeven' },
 			{ p: toW(tackAt), text: 'drenkeling dwars: overstag' },
-			{ p: toW(mid(appStart, { a: 0, b: 0 })), text: 'killend bij' }
+			{ p: toW(mid(appStart, E)), text: 'killend bij' }
 		],
 		phases: [
 			{ from: 0, hint: REACT },
@@ -242,7 +259,7 @@ export function idealPath(wind: Wind, boat: Boat, mob: Vec, method: Method): Ide
 			{ from: P.iLuff, hint: 'Oploeven naar aan de wind, schoot aantrekken' },
 			{ from: P.iClose, hint: 'Aan de wind doorvaren tot de drenkeling dwars ligt' },
 			{ from: iTack, hint: 'Drenkeling dwars: overstag' },
-			{ from: iApp, hint: 'Killend bij: vieren om vaart te minderen' }
+			{ from: iApp, hint: 'Killend bij, drenkeling aan loef: vieren om vaart te minderen' }
 		]
 	};
 }

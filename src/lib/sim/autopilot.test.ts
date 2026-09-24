@@ -5,6 +5,7 @@ import { angDiff } from './geometry';
 import { createSim, step } from './physics';
 import { mulberry32 } from './rng';
 import { createScenario } from './scenario';
+import { pickupSide } from './scoring';
 import type { Method, WindStrength } from './types';
 
 const DT = 1 / 60;
@@ -40,7 +41,11 @@ describe.each<Method>(['halvewind', 'mobje'])('autopiloot op het ideale pad: %s'
 				expect(s.run.crash, ctx).toBe(0);
 				if (method === 'halvewind') expect(s.finished, ctx).toBe(true);
 				total++;
-				if (s.finished) picked++;
+				if (s.finished) {
+					picked++;
+					// het ideale pad eindigt zo dat de drenkeling aan loefzijde ligt
+					expect(pickupSide(s).side, ctx).toBe('loef');
+				}
 			}
 		});
 	});

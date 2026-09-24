@@ -43,7 +43,7 @@
 		{
 			target: null,
 			title: 'Man over boord',
-			text: 'Op een onverwacht moment gaat er iemand overboord en loopt de tijd. Heb je "Zelf starten" gekozen, dan druk je zelf op M of de MOB-knop. Gooi meteen de reddingsboei (B) en houd de drenkeling in zicht. Vaar terug en kom langzamer dan 1,5 knoop naast de drenkeling. De groene stippellijn toont de ideale koers.'
+			text: 'Op een onverwacht moment gaat er iemand overboord en loopt de tijd. Heb je "Zelf starten" gekozen, dan druk je zelf op M of de MOB-knop. Gooi meteen de reddingsboei (B) en houd de drenkeling in zicht. Vaar terug en kom langzamer dan 1,5 knoop naast de drenkeling, met de drenkeling aan loefzijde. De groene stippellijn toont de ideale koers.'
 		}
 	];
 

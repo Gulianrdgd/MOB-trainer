@@ -40,6 +40,13 @@ export const SPEED_FACTOR = 0.42;
  * zodat je het vieren bij de drenkeling kunt timen.
  */
 export const DECEL = 0.15;
+export const PROTOTYPE_DECEL = 0.3;
+
+/**
+ * Het ideale pad eindigt zoveel meter dwars naar lij van de drenkeling, zodat hij bij het
+ * oppakken aan loefzijde ligt (bij de want). Het prototype eindigde op de drenkeling zelf.
+ */
+export const PICKUP_OFFSET = 2.5;
 
 /** Optrekken: fractie van het snelheidsverschil per seconde. */
 export const ACCEL = 0.35;

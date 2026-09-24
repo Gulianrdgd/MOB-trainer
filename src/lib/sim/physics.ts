@@ -2,6 +2,8 @@ import {
 	ACCEL,
 	BUOY_RANGE,
 	DECEL,
+	PICKUP_OFFSET,
+	PROTOTYPE_DECEL,
 	KN,
 	PICK_R,
 	PICK_V,
@@ -121,7 +123,11 @@ export function triggerMob(s: SimState): boolean {
 	const pos = { x: boat.x - Math.sin(hr) * 3.3, y: boat.y + Math.cos(hr) * 3.3 };
 	s.mobIdx = s.track.length;
 	s.track.push({ x: boat.x, y: boat.y });
-	s.mob = { ...pos, t0: s.t, ideal: idealPath(wind, boat, pos, s.config.method) };
+	s.mob = {
+		...pos,
+		t0: s.t,
+		ideal: idealPath(wind, boat, pos, s.config.method, s.config.prototype ? 0 : PICKUP_OFFSET)
+	};
 	s.run.startTh = Math.abs(angDiff(wind.dir, boat.h));
 	sample(s);
 	return true;
@@ -186,7 +192,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 
 	// snelheid
 	const tgt = polar(th) * sp.p * w.kn * SPEED_FACTOR * KN;
-	const k = tgt > boat.v ? ACCEL : (s.config.decel ?? DECEL);
+	const k = tgt > boat.v ? ACCEL : s.config.prototype ? PROTOTYPE_DECEL : DECEL;
 	boat.v += (tgt - boat.v) * Math.min(1, k * dt);
 	boat.v -= boat.v * Math.abs(boat.rudder) * 0.12 * dt;
 	if (boat.v < 0) boat.v = 0;
