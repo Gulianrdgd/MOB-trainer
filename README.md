@@ -1,6 +1,9 @@
 # Man-over-boord trainer
+Wat doe je als je een zeil examen hebt en je nog thuis wilt oefenen. Je vibecoded een MOB simulator natuurlijk! 
 
-Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de halve-windmethode. Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. 
+Het heeft mij veel geholpen, misschien helpt het jou ook. Als er fouten zijn laat me dat vooral weten via mijn email of via een github issue. 
+
+Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. 
 
 ## Wat zit erin
 
