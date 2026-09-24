@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { narrow = false, children }: { narrow?: boolean; children: Snippet<[string]> } = $props();
+	let {
+		narrow = false,
+		wide = false,
+		children
+	}: { narrow?: boolean; wide?: boolean; children: Snippet<[string]> } = $props();
 
 	const titleId = $props.id();
 </script>
@@ -15,7 +19,7 @@
 		data-card
 		class={[
 			'max-h-full w-full overflow-auto rounded-[14px] border border-panel-edge bg-panel px-5 py-[18px] select-text',
-			narrow ? 'max-w-[320px] text-center' : 'max-w-[560px]'
+			narrow ? 'max-w-[320px] text-center' : wide ? 'max-w-[760px]' : 'max-w-[560px]'
 		]}
 	>
 		{@render children(titleId)}
