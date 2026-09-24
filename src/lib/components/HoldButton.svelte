@@ -4,8 +4,9 @@
 	let {
 		held = $bindable(false),
 		disabled = false,
+		label,
 		children
-	}: { held?: boolean; disabled?: boolean; children: Snippet } = $props();
+	}: { held?: boolean; disabled?: boolean; label: string; children: Snippet } = $props();
 
 	function down(e: PointerEvent) {
 		e.preventDefault();
@@ -22,6 +23,7 @@
 <button
 	type="button"
 	{disabled}
+	aria-label={label}
 	class={[
 		'flex h-[58px] min-w-[62px] touch-none flex-col items-center justify-center rounded-xl border-0 px-3 text-[15px] leading-[1.05] font-bold disabled:opacity-35 max-[520px]:h-[54px] max-[520px]:min-w-[52px] max-[520px]:px-2 max-[520px]:text-[14px]',
 		held ? 'bg-btn-on text-white' : 'bg-btn text-btn-ink'

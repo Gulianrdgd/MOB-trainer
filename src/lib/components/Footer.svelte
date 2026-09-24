@@ -2,6 +2,7 @@
 	import { isSet, site } from '$lib/config';
 
 	const github = isSet(site.githubUrl) ? site.githubUrl : null;
+	const email = isSet(site.contactEmail) ? site.contactEmail : null;
 </script>
 
 <!-- Vaste strook onder de simulatie, nooit over het canvas. -->
@@ -17,6 +18,14 @@
 		{:else}
 			<span class="font-semibold text-ink">{site.author}</span>.
 		{/if}
-		Vereenvoudigd model. Oefen het echt op het water met een instructeur. Geen tracking, geen cookies.
+		Vereenvoudigd model.
+		{#if email}
+			Idee voor een nieuwe functie of een bug gevonden? Mail
+			<a
+				class="font-semibold text-ink underline underline-offset-2"
+				rel="external"
+				href="mailto:{email}">{email}</a
+			>.
+		{/if}
 	</p>
 </footer>

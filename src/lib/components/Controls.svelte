@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { game } from '$lib/state/game.svelte';
+	import ArrowDown from 'phosphor-svelte/lib/ArrowDown';
+	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import ArrowUp from 'phosphor-svelte/lib/ArrowUp';
 	import HoldButton from './HoldButton.svelte';
 
 	const showMob = $derived(game.running && game.runManualMob && !game.hasMob);
@@ -16,26 +20,20 @@
 	>
 		{game.hint}
 	</div>
-{:else}
-	<div
-		class="pointer-events-none absolute bottom-[78px] left-1/2 -translate-x-1/2 text-[13px] whitespace-nowrap text-muted touch:hidden"
-	>
-		←/→ roer, ↑ aantrekken, ↓ vieren, spatie alles los, M man over boord, B boei, P pauze
-	</div>
 {/if}
 
 <div
 	class="pointer-events-none absolute right-2.5 bottom-2.5 left-2.5 flex items-end justify-between gap-2"
 >
 	<div data-tour="rudder" class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
-		<HoldButton bind:held={game.hold.left}
-			><kbd class="keycap text-[16px]">←</kbd><small class="text-[12px] font-medium opacity-75"
-				>roer</small
+		<HoldButton label="Roer naar links" bind:held={game.hold.left}
+			><kbd class="keycap"><ArrowLeft weight="bold" size={17} aria-hidden="true" /></kbd><small
+				class="text-[12px] font-medium opacity-75">roer</small
 			></HoldButton
 		>
-		<HoldButton bind:held={game.hold.right}
-			><kbd class="keycap text-[16px]">→</kbd><small class="text-[12px] font-medium opacity-75"
-				>roer</small
+		<HoldButton label="Roer naar rechts" bind:held={game.hold.right}
+			><kbd class="keycap"><ArrowRight weight="bold" size={17} aria-hidden="true" /></kbd><small
+				class="text-[12px] font-medium opacity-75">roer</small
 			></HoldButton
 		>
 	</div>
@@ -58,17 +56,17 @@
 		</button>
 	{/if}
 	<div data-tour="sheet" class="pointer-events-auto flex gap-2 max-[520px]:gap-1.5">
-		<HoldButton bind:held={game.hold.in} disabled={game.runAutoTrim}
-			><kbd class="keycap text-[16px]">↑</kbd><small class="text-[12px] font-medium opacity-75"
-				>aantrekken</small
+		<HoldButton label="Schoot aantrekken" bind:held={game.hold.in} disabled={game.runAutoTrim}
+			><kbd class="keycap"><ArrowUp weight="bold" size={17} aria-hidden="true" /></kbd><small
+				class="text-[12px] font-medium opacity-75">aantrekken</small
 			></HoldButton
 		>
-		<HoldButton bind:held={game.hold.out} disabled={game.runAutoTrim}
-			><kbd class="keycap text-[16px]">↓</kbd><small class="text-[12px] font-medium opacity-75"
-				>vieren</small
+		<HoldButton label="Schoot vieren" bind:held={game.hold.out} disabled={game.runAutoTrim}
+			><kbd class="keycap"><ArrowDown weight="bold" size={17} aria-hidden="true" /></kbd><small
+				class="text-[12px] font-medium opacity-75">vieren</small
 			></HoldButton
 		>
-		<HoldButton bind:held={game.hold.loose}
+		<HoldButton label="Alles los" bind:held={game.hold.loose}
 			><kbd class="keycap text-[12px]">spatie</kbd><small class="text-[12px] font-medium opacity-75"
 				>alles los</small
 			></HoldButton
