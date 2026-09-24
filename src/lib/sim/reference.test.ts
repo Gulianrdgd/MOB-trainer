@@ -127,9 +127,11 @@ describe('pariteit met het referentie-prototype', () => {
 			} finally {
 				Math.random = orig;
 			}
+			// decel 0,3: het prototype remde harder af dan de huidige versie
 			const s = createSim({ dir: ref.wind.dir, h: ref.boat.h, at: Infinity }, ref.wind.kn, {
 				autoTrim: autoTrim === 'true',
-				method
+				method,
+				decel: 0.3
 			});
 			expect(s.boat).toEqual(expect.objectContaining(pick(ref.boat)));
 

@@ -34,6 +34,16 @@ export const STRENGTH = { licht: 8, matig: 12, stevig: 18 } as const;
 /** Maximale bootsnelheid als fractie van de windsnelheid. */
 export const SPEED_FACTOR = 0.42;
 
+/**
+ * Afremmen als het zeil minder trekt: fractie van het snelheidsverschil per seconde.
+ * Het prototype gebruikte 0,3; met 0,15 drijft de boot twee keer zo lang door,
+ * zodat je het vieren bij de drenkeling kunt timen.
+ */
+export const DECEL = 0.15;
+
+/** Optrekken: fractie van het snelheidsverschil per seconde. */
+export const ACCEL = 0.35;
+
 /** Draaisnelheid bij vol roer, graden per seconde. */
 export const TURN_RATE = 38;
 

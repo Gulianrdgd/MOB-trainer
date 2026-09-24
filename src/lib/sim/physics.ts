@@ -1,5 +1,7 @@
 import {
+	ACCEL,
 	BUOY_RANGE,
+	DECEL,
 	KN,
 	PICK_R,
 	PICK_V,
@@ -184,7 +186,7 @@ export function step(s: SimState, input: Input, dt: number): SimEvent[] {
 
 	// snelheid
 	const tgt = polar(th) * sp.p * w.kn * SPEED_FACTOR * KN;
-	const k = tgt > boat.v ? 0.35 : 0.3;
+	const k = tgt > boat.v ? ACCEL : (s.config.decel ?? DECEL);
 	boat.v += (tgt - boat.v) * Math.min(1, k * dt);
 	boat.v -= boat.v * Math.abs(boat.rudder) * 0.12 * dt;
 	if (boat.v < 0) boat.v = 0;

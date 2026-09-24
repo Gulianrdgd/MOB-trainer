@@ -77,6 +77,8 @@ export interface SimConfig {
 	method: Method;
 	/** Vlagen en windschiftingen. */
 	variableWind?: boolean;
+	/** Afwijkende DECEL; alleen voor de pariteitstest met het prototype (0,3). */
+	decel?: number;
 }
 
 /** Beginsituatie van een run: windrichting, koers en moment van het alarm. */
