@@ -3,10 +3,13 @@
 #   websecure        de entrypoint voor HTTPS in je Traefik-config
 #   letsencrypt      de naam van je certresolver
 #   traefik          het Docker-netwerk waar Traefik op zit
+#
+# Het image wordt door GitHub Actions gebouwd (.github/workflows/docker.yml).
+# Bijwerken: docker compose pull && docker compose up -d
 services:
   mob-trainer:
-    build: .
-    image: mob-trainer:latest
+    image: ghcr.io/gulianrdgd/mob-trainer:latest
+    # zelf bouwen in plaats van pullen: zet 'build: .' hier en haal 'image' weg
     restart: unless-stopped
     networks:
       - traefik

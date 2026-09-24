@@ -43,7 +43,15 @@ pnpm preview   # bekijk de build op http://localhost:4173
 
 ## Deployen
 
-De `Dockerfile` bouwt de site (en draait eerst de tests) en serveert hem met Caddy op poort 80:
+Bij elke push naar `main` bouwt GitHub Actions (`.github/workflows/docker.yml`) het image voor amd64 en arm64 en zet het in GitHub Container Registry:
+
+- `ghcr.io/gulianrdgd/mob-trainer:latest` (laatste versie van `main`)
+- `ghcr.io/gulianrdgd/mob-trainer:sha-<commit>` (elke commit)
+- `ghcr.io/gulianrdgd/mob-trainer:1.2.3` bij een git-tag `v1.2.3`
+
+De tests draaien tijdens het bouwen; faalt er een, dan komt er geen nieuw image. Pull requests worden alleen gebouwd, niet gepubliceerd.
+
+In het image serveert Caddy de site op poort 80:
 
 - gehashte bestanden in `/_app/immutable/` worden een jaar gecachet
 - `index.html` en de overige bestanden krijgen `Cache-Control: no-cache`
@@ -52,11 +60,15 @@ De `Dockerfile` bouwt de site (en draait eerst de tests) en serveert hem met Cad
 Achter Traefik:
 
 1. Pas in `docker-compose.yml` het domein (`mob.example.com`), de entrypoint (`websecure`), de certresolver (`letsencrypt`) en het netwerk (`traefik`) aan je eigen opstelling aan.
-2. Start de container:
+2. Start of werk bij:
 
    ```sh
-   docker compose up -d --build
+   docker compose pull && docker compose up -d
    ```
+
+Is de repository privé, dan is het image dat ook: log op de server eenmalig in met een GitHub-token met `read:packages` (`docker login ghcr.io`), of zet het package op GitHub op openbaar.
+
+Zelf bouwen kan ook: `docker build -t mob-trainer .`
 
 Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zetten. Zorg dan dat `service-worker.js` en `index.html` niet lang gecachet worden, anders zien bezoekers updates pas laat.
 

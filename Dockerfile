@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # ---- build: statische site met pnpm ----
-FROM node:24-alpine AS build
+# Altijd op het platform van de bouwer: de site is voor elke architectuur hetzelfde,
+# alleen de Caddy-laag hieronder verschilt per platform.
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml .npmrc ./
