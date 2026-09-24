@@ -38,13 +38,48 @@ const defaults: Settings = {
 	variableWind: 'off'
 };
 
+const ALLOWED: { [K in keyof Settings]: readonly Settings[K][] } = {
+	windDir: [],
+	windStrength: ['licht', 'matig', 'stevig'],
+	startCourse: [],
+	mobMode: ['auto', 'manual'],
+	autoTrim: ['true', 'false'],
+	showIdeal: ['live', 'after', 'off'],
+	method: ['mobje', 'halvewind'],
+	timeScale: [1, 2],
+	hints: ['on', 'off'],
+	variableWind: ['on', 'off']
+};
+
+/** 'random' of een getal in [min, max] als string, zoals in een gedeelde link. */
+const degrees = (v: unknown, min: number, max: number) =>
+	v === 'random' || (typeof v === 'string' && /^\d+(\.\d+)?$/.test(v) && +v >= min && +v <= max);
+
+/** Alleen geldige instellingen uit onbetrouwbare opslag overnemen. */
+export function parseSettings(raw: unknown): Partial<Settings> {
+	if (!raw || typeof raw !== 'object') return {};
+	const r = raw as Record<string, unknown>;
+	const out: Record<string, unknown> = {};
+	for (const key of Object.keys(ALLOWED) as (keyof Settings)[]) {
+		const v = r[key];
+		const ok =
+			key === 'windDir'
+				? degrees(v, 0, 359.99)
+				: key === 'startCourse'
+					? degrees(v, 30, 180)
+					: (ALLOWED[key] as readonly unknown[]).includes(v);
+		if (ok) out[key] = v;
+	}
+	return out as Partial<Settings>;
+}
+
 class SettingsStore {
 	values = $state<Settings>({ ...defaults });
 
 	/** Pas na hydratie aanroepen, zodat de voorgerenderde HTML met de standaardwaarden klopt. */
 	load() {
 		try {
-			Object.assign(this.values, JSON.parse(localStorage.getItem(KEY) || '{}'));
+			Object.assign(this.values, parseSettings(JSON.parse(localStorage.getItem(KEY) || '{}')));
 		} catch {
 			// geen of ongeldige opslag: standaardwaarden houden
 		}
