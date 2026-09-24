@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { courseName, dirName } from '$lib/sim/geometry';
-	import { toSearchParams, type SharedScenario } from '$lib/share';
+	import { socialText, toSearchParams, type SharedScenario } from '$lib/share';
 	import { onDestroy } from 'svelte';
 
-	let { scenario, class: className }: { scenario: SharedScenario; class: string } = $props();
+	let {
+		scenario,
+		time,
+		mistakes,
+		class: className
+	}: { scenario: SharedScenario; time: number; mistakes: number; class: string } = $props();
 
 	/** Wat er na de klik gebeurde: gedeeld via het deelmenu, gekopieerd, of zelf kopiëren. */
 	let outcome = $state<'shared' | 'copied' | 'manual' | null>(null);
@@ -11,6 +15,9 @@
 	onDestroy(() => clearTimeout(timer));
 
 	const url = $derived(`${location.origin}${location.pathname}?${toSearchParams(scenario)}`);
+	const text = $derived(socialText({ time, mistakes, scenario }));
+	/** Wat op het klembord komt: de uitdaging met de link erachter. */
+	const post = $derived(`${text}\n${url}`);
 
 	const label = $derived(
 		outcome === 'copied'
@@ -30,7 +37,6 @@
 	}
 
 	async function share() {
-		const text = `Oefen deze man-over-boordsituatie: wind uit ${dirName(scenario.windDir)}, ${courseName(scenario.startCourse).toLowerCase()}.`;
 		if (navigator.share) {
 			try {
 				await navigator.share({ title: 'Man-over-boord trainer', text, url });
@@ -40,7 +46,7 @@
 			}
 		}
 		try {
-			await navigator.clipboard.writeText(url);
+			await navigator.clipboard.writeText(post);
 			done('copied');
 		} catch {
 			// geen klembord (bijvoorbeeld via http): link tonen om zelf te kopiëren
@@ -53,12 +59,12 @@
 <p class="sr-only" role="status">{outcome === 'copied' ? 'Link gekopieerd' : ''}</p>
 {#if outcome === 'copied' || outcome === 'manual'}
 	<label class="mt-1 block w-full text-[14px] text-muted">
-		{outcome === 'copied' ? 'Gekopieerd, plak hem waar je wilt:' : 'Kopieer de link:'}
-		<input
+		{outcome === 'copied' ? 'Gekopieerd, plak het waar je wilt:' : 'Kopieer dit bericht:'}
+		<textarea
 			readonly
-			value={url}
-			class="mt-1 block w-full rounded-lg border border-panel-edge bg-transparent px-2 py-1.5 text-ink"
-			onfocus={(e) => e.currentTarget.select()}
-		/>
+			rows="4"
+			value={post}
+			class="mt-1 block w-full resize-none rounded-lg border border-panel-edge bg-transparent px-2 py-1.5 text-ink"
+			onfocus={(e) => e.currentTarget.select()}></textarea>
 	</label>
 {/if}

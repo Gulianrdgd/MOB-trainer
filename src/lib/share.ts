@@ -1,4 +1,6 @@
+import { fmtTime } from './format';
 import { STRENGTH } from './sim/constants';
+import { dirName } from './sim/geometry';
 import type { Method, WindStrength } from './sim/types';
 
 /** Een vaste situatie die een instructeur via een link kan delen. */
@@ -51,4 +53,23 @@ export function fromSearchParams(p: URLSearchParams): SharedScenario | null {
 		seed,
 		variableWind: p.get('vlagen') === '1'
 	};
+}
+
+/** Tekst om je resultaat te delen, als uitdaging. De link komt er los achter. */
+export function socialText(o: {
+	time: number;
+	mistakes: number;
+	scenario: SharedScenario;
+}): string {
+	const { scenario: sc } = o;
+	const fouten =
+		o.mistakes === 0
+			? 'zonder fouten'
+			: `met ${o.mistakes} ${o.mistakes === 1 ? 'fout' : 'fouten'}`;
+	const method = sc.method === 'halvewind' ? 'halve-windmethode' : 'MOB-je';
+	return (
+		`Ik haalde de drenkeling in ${fmtTime(o.time)} aan boord, ${fouten} ` +
+		`(wind ${dirName(sc.windDir)}, ${STRENGTH[sc.windStrength]} kn, ${method}). ` +
+		'Denk je dat je me kunt verslaan?'
+	);
 }

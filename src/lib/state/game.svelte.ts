@@ -18,7 +18,7 @@ import type {
 	Wind,
 	WindStrength
 } from '$lib/sim/types';
-import { attemptFrom } from '$lib/history';
+import { attemptFrom, mistakes } from '$lib/history';
 import { history } from './history.svelte';
 import { settings } from './settings.svelte';
 
@@ -98,6 +98,8 @@ class Game {
 	hud = $state<HudView>({ ...INITIAL_HUD });
 	toast = $state({ msg: '', alarm: false, show: false });
 	result = $state.raw<Result | null>(null);
+	/** Aantal fouten in de laatste run, zoals in de geschiedenis geteld. */
+	lastMistakes = $state(0);
 	/** Gegevens om de afgelopen run terug te kijken. */
 	replay = $state.raw<ReplayData | null>(null);
 	/** Wind van de huidige run, voor het windkompas. Null voor de eerste start. */
@@ -220,17 +222,16 @@ class Game {
 		this.finished = true;
 		this.result = score(this.sim, v.showIdeal, v.method);
 		const s = this.sim;
-		if (this.run)
-			history.add(
-				attemptFrom(s.run, {
-					at: Date.now(),
-					time: this.result.time,
-					method: s.config.method,
-					windDir: s.wind.dir,
-					windStrength: this.run.windStrength,
-					side: this.result.side
-				})
-			);
+		const attempt = attemptFrom(s.run, {
+			at: Date.now(),
+			time: this.result.time,
+			method: s.config.method,
+			windDir: s.wind.dir,
+			windStrength: this.run?.windStrength ?? v.windStrength,
+			side: this.result.side
+		});
+		this.lastMistakes = mistakes(attempt).length;
+		if (this.run) history.add(attempt);
 		this.replay = {
 			samples: s.replay,
 			marks: s.marks,

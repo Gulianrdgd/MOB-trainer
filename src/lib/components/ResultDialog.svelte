@@ -59,7 +59,7 @@
 		</div>
 		{#if scenario}
 			<div class="mt-2 flex flex-wrap gap-2">
-				<ShareButton {scenario} class={secondary} />
+				<ShareButton {scenario} time={result.time} mistakes={game.lastMistakes} class={secondary} />
 			</div>
 		{/if}
 	{/snippet}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fromSearchParams, toSearchParams, type SharedScenario } from './share';
+import { fromSearchParams, socialText, toSearchParams, type SharedScenario } from './share';
 
 const s: SharedScenario = {
 	windDir: 247.5,
@@ -34,4 +34,16 @@ describe('gedeelde situatie in de URL', () => {
 		['kommagetal als seed', 'wind=0&kracht=matig&koers=90&methode=mobje&seed=1.5'],
 		['tekst', 'wind=abc&kracht=matig&koers=90&methode=mobje&seed=1']
 	])('weigert %s', (_, q) => expect(fromSearchParams(new URLSearchParams(q))).toBeNull());
+});
+
+describe('deeltekst', () => {
+	it('noemt tijd, fouten en omstandigheden en daagt uit', () => {
+		expect(socialText({ time: 47.8, mistakes: 0, scenario: s })).toBe(
+			'Ik haalde de drenkeling in 0:47 aan boord, zonder fouten (wind WZW, 18 kn, halve-windmethode). Denk je dat je me kunt verslaan?'
+		);
+		expect(socialText({ time: 95, mistakes: 1, scenario: { ...s, method: 'mobje' } })).toContain(
+			'in 1:35 aan boord, met 1 fout'
+		);
+		expect(socialText({ time: 60, mistakes: 3, scenario: s })).toContain('met 3 fouten');
+	});
 });
