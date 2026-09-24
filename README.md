@@ -3,6 +3,8 @@ Wat doe je als je een zeil examen hebt en je nog thuis wilt oefenen. Je vibecode
 
 Het heeft mij veel geholpen, misschien helpt het jou ook. Als er fouten zijn laat me dat vooral weten via mijn email of via een github issue. 
 
+Je kan het proberen op https://mob.vdhorst.dev
+
 Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. 
 
 ## Wat zit erin
