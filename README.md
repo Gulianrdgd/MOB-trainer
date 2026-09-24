@@ -1,6 +1,6 @@
 # Man-over-boord trainer
 
-Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de halve-windmethode. Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. De site is volledig statisch; er is geen server-runtime nodig.
+Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de halve-windmethode. Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. 
 
 ## Wat zit erin
 
@@ -11,7 +11,6 @@ Zeilsimulator om de man-over-boordmanoeuvre te oefenen, met het MOB-je of de hal
 - situatie delen via een link (wind, windkracht, startkoers, methode, seed, vlagen)
 - geschiedenis van de laatste 50 pogingen, alleen in de browser (localStorage)
 - rondleiding bij de eerste start
-- werkt offline als app (manifest en service worker)
 
 ## Lokaal draaien
 
@@ -75,10 +74,6 @@ Zonder Docker kun je ook de inhoud van `build/` op elke statische webserver zett
 ## Offline en installeren
 
 Na het eerste bezoek zet de service worker de hele app in de cache; daarna werkt hij zonder verbinding, ook met een gedeelde link. Op een telefoon kun je hem via "Zet op beginscherm" als app installeren. De iconen staan in `static/icons/`; de PNG's zijn gemaakt van `icon.svg` en `maskable.svg`.
-
-## Footer
-
-Naam en GitHub-link staan in `src/lib/config.ts`. Een link die op `TODO` staat of leeg is, wordt niet getoond.
 
 ## Structuur
 
