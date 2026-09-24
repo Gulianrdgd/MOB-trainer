@@ -5,6 +5,8 @@ Het heeft mij veel geholpen, misschien helpt het jou ook. Als er fouten zijn laa
 
 Je kan het proberen op https://mob.vdhorst.dev
 
+<img width="1916" height="936" alt="afbeelding" src="https://github.com/user-attachments/assets/fd2b255e-ff84-4091-8844-57942923c87b" />
+
 Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4. 
 
 ## Wat zit erin
