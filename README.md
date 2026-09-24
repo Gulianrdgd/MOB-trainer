@@ -17,11 +17,11 @@ Gebouwd met SvelteKit, Svelte 5 en Tailwind CSS v4.
 
 ## Lokaal draaien
 
-Je hebt Node 24 en pnpm nodig (`corepack enable` zet de juiste pnpm-versie klaar).
+Je hebt [Deno](https://deno.com) 2 nodig.
 
 ```sh
-pnpm install
-pnpm dev
+deno install
+deno task dev
 ```
 
 Open daarna http://localhost:5173.
@@ -29,9 +29,9 @@ Open daarna http://localhost:5173.
 ## Testen
 
 ```sh
-pnpm test      # Vitest: unit tests, autopiloot-regressietest en pariteit met het prototype
-pnpm check     # svelte-check en TypeScript
-pnpm lint      # Prettier en ESLint
+deno task test     # Vitest: unit tests, autopiloot-regressietest en pariteit met het prototype
+deno task check    # svelte-check en TypeScript
+deno task lint     # Prettier en ESLint
 ```
 
 De pariteitstest draait de simulatiecode uit `reference/man-over-boord.html` naast de nieuwe code en eist na elke stap exact dezelfde toestand. Laat dat bestand daarom staan.
@@ -39,8 +39,8 @@ De pariteitstest draait de simulatiecode uit `reference/man-over-boord.html` naa
 ## Builden
 
 ```sh
-pnpm build     # schrijft de site naar build/, met .br- en .gz-versies van elk bestand
-pnpm preview   # bekijk de build op http://localhost:4173
+deno task build    # schrijft de site naar build/, met .br- en .gz-versies van elk bestand
+deno task preview  # bekijk de build op http://localhost:4173
 ```
 
 ## Deployen

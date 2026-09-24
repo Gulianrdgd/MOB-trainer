@@ -1,6 +1,6 @@
 # Package Managers
 package-lock.json
-pnpm-lock.yaml
+deno.lock
 yarn.lock
 bun.lock
 bun.lockb
