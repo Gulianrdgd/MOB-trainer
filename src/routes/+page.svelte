@@ -14,6 +14,7 @@
 	import { history } from '$lib/state/history.svelte';
 	import { settings } from '$lib/state/settings.svelte';
 	import { fromSearchParams } from '$lib/share';
+	import { site } from '$lib/config';
 	import { onMount } from 'svelte';
 
 	onMount(() => {
@@ -24,14 +25,49 @@
 	});
 
 	const small = 'panel h-9 min-w-10 rounded-lg px-2.5 font-semibold';
+
+	const title = 'Man-over-boord trainer: MOB oefenen voor je zeilexamen';
+	const description =
+		'Oefen gratis de man-over-boordmanoeuvre in een zeilsimulator in je browser, met het MOB-je of de halve-windmethode. Na afloop zie je je spoor naast de ideale koers.';
+	const canonical = `${site.url}/`;
+	const image = `${site.url}/icons/icon-512.png`;
+
+	// Een JSON-LD-blok wordt niet uitgevoerd, dus de CSP laat het door.
+	const jsonLd =
+		`<script type="application/ld+json">${JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'WebApplication',
+			name: 'Man-over-boord trainer',
+			url: canonical,
+			description,
+			inLanguage: 'nl',
+			applicationCategory: 'EducationalApplication',
+			operatingSystem: 'Any',
+			isAccessibleForFree: true,
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+			author: { '@type': 'Person', name: site.author, url: site.githubUrl }
+		})}</` + `script>`;
 </script>
 
 <svelte:head>
-	<title>Man-over-boord trainer</title>
-	<meta
-		name="description"
-		content="Oefen de man-over-boordmanoeuvre in een eenvoudige zeilsimulator, met het MOB-je of de halve-windmethode."
-	/>
+	<title>{title}</title>
+	<meta name="description" content={description} />
+	<!-- Gedeelde links (?wind=...) zijn dezelfde pagina voor zoekmachines. -->
+	<link rel="canonical" href={canonical} />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:locale" content="nl_NL" />
+	<meta property="og:site_name" content="MOB-trainer" />
+	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content={image} />
+	<meta property="og:image:width" content="512" />
+	<meta property="og:image:height" content="512" />
+	<meta name="twitter:card" content="summary" />
+
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- vaste inhoud, geen gebruikersinvoer -->
+	{@html jsonLd}
 </svelte:head>
 
 <svelte:window
