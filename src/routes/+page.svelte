@@ -30,7 +30,7 @@
 	const description =
 		'Oefen gratis de man-over-boordmanoeuvre in een zeilsimulator in je browser, met het MOB-je of de halve-windmethode. Na afloop zie je je spoor naast de ideale koers.';
 	const canonical = `${site.url}/`;
-	const image = `${site.url}/icons/icon-512.png`;
+	const image = `${site.url}/og/preview.png`;
 
 	// Een JSON-LD-blok wordt niet uitgevoerd, dus de CSP laat het door.
 	const jsonLd =
@@ -62,9 +62,13 @@
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:image" content={image} />
-	<meta property="og:image:width" content="512" />
-	<meta property="og:image:height" content="512" />
-	<meta name="twitter:card" content="summary" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta
+		property="og:image:alt"
+		content="De MOB-trainer: een zeilboot keert terug naar de drenkeling langs de ideale koers."
+	/>
+	<meta name="twitter:card" content="summary_large_image" />
 
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -- vaste inhoud, geen gebruikersinvoer -->
 	{@html jsonLd}

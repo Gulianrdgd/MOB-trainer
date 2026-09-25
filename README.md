@@ -1,4 +1,7 @@
 # Man-over-boord trainer
+
+![De MOB-trainer: een zeilboot keert terug naar de drenkeling langs de ideale koers](static/og/screenshot.png)
+
 Wat doe je als je een zeil examen hebt en je nog thuis wilt oefenen. Je vibecoded een MOB simulator natuurlijk! 
 
 Het heeft mij veel geholpen, misschien helpt het jou ook. Als er fouten zijn laat me dat vooral weten via mijn email of via een github issue. 

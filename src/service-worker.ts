@@ -9,7 +9,8 @@ import { build, files, prerendered, version } from '$service-worker';
 const self = globalThis.self as unknown as ServiceWorkerGlobalScope;
 
 const CACHE = `mob-trainer-${version}`;
-const ASSETS = [...build, ...files, ...prerendered];
+// Afbeeldingen in /og/ zijn alleen voor linkvoorbeelden en de README, niet voor de app.
+const ASSETS = [...build, ...files.filter((f) => !f.startsWith('/og/')), ...prerendered];
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(
